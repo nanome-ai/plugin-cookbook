@@ -1,0 +1,1 @@
+git+git://github.com/nanome-ai/nanome-lib.git@nanobabel_fallback
