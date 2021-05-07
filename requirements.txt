@@ -1,2 +1,2 @@
 nanome
-jupyter
+jupyterlab
