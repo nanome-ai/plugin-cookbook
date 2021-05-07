@@ -3,9 +3,17 @@
 Yummy receipes and how-tos for building plugins with Nanome!
 
 ## Installation
+Using Docker
 <code>
-pip install -r requirements.txt
-jupyter notebook
+docker build . -t cookbook<br>
+docker run -it  -p 8888:8888 nanome-cookbook
+</code>
+
+Locally
+<code>
+pip install -r requirements.txt<br>
+npm install
+jupyter-lab
 </code>
 
 # Get Started
