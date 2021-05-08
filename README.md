@@ -1,6 +1,8 @@
-# plugin-cookbook
+# Nanome Plugin Cookbook
 
 Yummy receipes and how-tos for building plugins with Nanome!
+
+These how-tos are a supplement to the API documentation (https://nanome.readthedocs.io)
 
 ## Installation
 Using Docker
@@ -22,3 +24,7 @@ jupyter-lab
 	<li>Building your first Plugin. <code>notebooks/Plugins.ipynb</code></li>
     <li>Utilizing nanome-lib features. <code>notebooks/Cookbook.ipynb</code></li>
 </ol>
+
+## Contributors
+@mrosengrant
+@ajm13
