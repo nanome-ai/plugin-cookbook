@@ -4,14 +4,13 @@ Nanome is an immersive platform for collaborative computationally-driven molecul
 
 
 ### Hello! Welcome to the Plugin Chef Cookbook. Here you can find all of the basic miniture code snippets to best cook up a Nanome plugin. 
-
-
-View it directly at https://github.com/nanome-ai/plugin-cookbook/blob/main/notebooks/Cookbook.ipynb
-
-
 As part of the delicious receipes and how-tos for building plugins, here you will find topics ranging from 'How to import structures' to 'How to change representations".
 
 These how-tos are a supplement to the API documentation (https://nanome.readthedocs.io)
+
+
+View the Cookbook Jupyter/IPython Notebook directly at https://github.com/nanome-ai/plugin-cookbook/blob/main/notebooks/Cookbook.ipynb
+
 
 Follow the instructions below so you can spin up the Cookbook and run block by block to better understand how to work with Nanome's Python API. 
 
