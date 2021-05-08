@@ -1,6 +1,13 @@
 # Nanome Plugin Cookbook
 
-Hello! Welcome to the Plugin Chef Cookbook. Here you can find all of the basic miniture code snippets to best cook up a Nanome plugin. Nanome is an immersive platform for collaborative computationally-driven molecular design. Learn more about Nanome at https://nanome.ai. 
+Nanome is an immersive platform for collaborative computationally-driven molecular design. Learn more about Nanome at https://nanome.ai. 
+
+
+### Hello! Welcome to the Plugin Chef Cookbook. Here you can find all of the basic miniture code snippets to best cook up a Nanome plugin. 
+
+
+View it directly at https://github.com/nanome-ai/plugin-cookbook/blob/main/notebooks/Cookbook.ipynb
+
 
 As part of the delicious receipes and how-tos for building plugins, here you will find topics ranging from 'How to import structures' to 'How to change representations".
 
