@@ -22,19 +22,19 @@ Use Git to clone this repository to your computer.
 
 Requires Docker Installed (https://www.docker.com/)
 
-<code>
-docker build . -t cookbook<br>
+```bash
+docker build . -t cookbook
 docker run -it  -p 8888:8888 nanome-cookbook
-</code>
+```
 
 ### Using local python
 
 
-<code>
-pip install -r requirements.txt<br>
+```bash
+pip install -r requirements.txt
 npm install
 jupyter-lab
-</code>
+```
 
 # Get Started
 ## Table of Contents:
