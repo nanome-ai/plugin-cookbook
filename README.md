@@ -24,7 +24,7 @@ Requires Docker Installed (https://www.docker.com/)
 
 ```bash
 docker build . -t cookbook
-docker run -it  -p 8888:8888 nanome-cookbook
+docker run -it  -p 8888:8888 cookbook
 ```
 
 ### Using local python
