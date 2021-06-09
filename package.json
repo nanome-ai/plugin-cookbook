@@ -1,6 +1,6 @@
 {
 	"dependencies": {
-		"@jupyterlab/builder": "3.0.7",
+		"@jupyterlab/builder": "latest",
 		"@jupyterlab/toc-extension": "latest"
 	}
 }
