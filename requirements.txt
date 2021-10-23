@@ -1,0 +1,4 @@
+nanome
+jupyterlab
+dill
+redis
