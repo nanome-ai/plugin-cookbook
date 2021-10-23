@@ -1,8 +1,11 @@
 FROM jupyter/minimal-notebook
 
-COPY . .
-
 USER root
 RUN npm install
+# RUN jupyterlab --generate-config
 USER jovyan
+
+COPY requirements.txt .
 RUN pip install -r requirements.txt
+
+COPY . .

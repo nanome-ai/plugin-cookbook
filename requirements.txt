@@ -1,2 +1,4 @@
 nanome
 jupyterlab
+dill
+redis
