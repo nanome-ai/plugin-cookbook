@@ -7,3 +7,7 @@ notebook_secret
 jpserver-8*
 jupyter_cookie_secret
 kernel*.json
+.cache
+.jupyter
+.local
+.ipython
