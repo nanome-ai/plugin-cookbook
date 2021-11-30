@@ -11,3 +11,4 @@ kernel*.json
 .jupyter
 .local
 .ipython
+.jupyter
