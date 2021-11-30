@@ -2,3 +2,4 @@ nanome
 jupyterlab
 dill
 redis
+py2neo
