@@ -18,16 +18,10 @@ RUN npm --version
 # RUN npm install
 COPY package.json .
 # COPY package-lock.json .
-RUN npm install 
+RUN npm install
 
-RUN conda install -c conda-forge jupyterlab
-
-ENV username=jupyter
-RUN useradd -ms /bin/bash $username
+COPY ./jupyter_environ.yml .
+RUN conda env update -f jupyter_environ.yml
 
 COPY . .
-USER $username
-
-RUN pip install -r requirements.txt
-
-CMD jupyter lab 
+CMD jupyter lab --ip 0.0.0.0 --allow-root

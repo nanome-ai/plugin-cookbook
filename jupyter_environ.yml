@@ -1,0 +1,10 @@
+# ADFR-suite is required for using Autodock4, as there are steps that require Python 2.7
+# install this as a separate conda environment.
+name: base
+channels:
+  - conda-forge
+dependencies:
+  - jupyterlab
+  - pip
+  - pip:
+      - nanome==0.32.2

@@ -16,8 +16,16 @@ Follow the instructions below so you can spin up the Cookbook and run block by b
 
 ## Installation
 
-Use Git to clone this repository to your computer.
+1) Use Git to clone this repository to your computer.
+```sh
+git clone https://github.com/nanome-ai/plugin-cookbook.git
+````
 
+2) Set up pre-commit hook to delete outputs on commmit 
+```sh
+cp pre-commit-hook .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
 ### Using Docker
 
 Requires Docker Installed (https://www.docker.com/)
