@@ -39,9 +39,9 @@ docker run -it  -p 8888:8888 cookbook
 
 
 ```bash
-pip install -r requirements.txt
+conda env update -f jupyter_environ.yml
 npm install
-jupyter-lab
+jupyter lab --ip 0.0.0.0
 ```
 
 # Get Started
