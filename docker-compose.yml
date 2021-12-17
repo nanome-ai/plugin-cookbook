@@ -1,6 +1,5 @@
 version: '3'
 services:
-  
   redis:
     image: redis
   
@@ -14,7 +13,7 @@ services:
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - DEFAULT_URL=http://127.0.0.1:8888
-      # - PERMANENT_CHANNEL=a5100bcd-3b33-48dc-a8b0-67f88182f24e  # Only use this for local development
+      # - PERMANENT_CHANNEL=a5100bcd-3b33-48dc-a8b0-67f88182f24e
     depends_on:
       - redis
     volumes:
@@ -34,7 +33,7 @@ services:
     ports:
       - 8888:8888
     volumes:
-      - ./cookbook:/home/jovyan
+      - ./cookbook:/app
       - ./service.py:/opt/conda/lib/python3.9/site-packages/nanome/service.py
       - ./interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
 

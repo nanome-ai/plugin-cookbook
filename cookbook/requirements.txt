@@ -3,3 +3,4 @@ jupyterlab
 dill
 redis
 py2neo
+ipdb
