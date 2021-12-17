@@ -1,4 +1,3 @@
-.ipynb_checkpoints
 *.log
 node_modules
 *.sqlite*
@@ -7,9 +6,12 @@ notebook_secret
 jpserver-8*
 jupyter_cookie_secret
 kernel*.json
-.cache
-.jupyter
-.local
-.ipython
-.jupyter
-./docker/redeploy.sh
+*.ipynb_checkpoints
+docker/redeploy.sh
+cookbook/.ipynb_checkpoints
+cookbook/.cache
+cookbook/.jupyter
+cookbook/.local
+cookbook/.ipython
+cookbook/.jupyter
+cookbook/.nanome_lib
