@@ -12,3 +12,4 @@ kernel*.json
 .local
 .ipython
 .jupyter
+./docker/redeploy.sh

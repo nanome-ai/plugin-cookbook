@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:4.8.2
+FROM continuumio/miniconda3:4.10.3
 
 WORKDIR /app
 ENV NODE_VERSION=16.13.1
@@ -19,12 +19,13 @@ RUN npm install
 # Set up jupyter conda environment
 RUN conda update conda
 COPY jupyter_environ.yml .
-# RUN conda install -n base -f jupyter_environ.yml
+
 # RUN conda env create -f jupyter_environ.yml
 RUN conda install -c conda-forge jupyterlab rdkit pip
+
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-
 COPY . .
+RUN jupyter notebook --generate-config
 CMD jupyter lab --ip 0.0.0.0 --allow-root
