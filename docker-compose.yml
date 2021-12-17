@@ -9,10 +9,13 @@ services:
       dockerfile: ./Dockerfile
     tty: true
     environment:
+      - DEFAULT_URL=http://127.0.0.1:8888
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
-      - DEFAULT_URL=http://127.0.0.1:8888
+      - NTS_HOST=${NTS_HOST:-}
+      - NTS_PORT=${NTS_PORT:-}
+      - ARGS=${ARGS:-}
       # - PERMANENT_CHANNEL=a5100bcd-3b33-48dc-a8b0-67f88182f24e
     depends_on:
       - redis
@@ -36,7 +39,6 @@ services:
       - ./cookbook:/app
       - ./service.py:/opt/conda/lib/python3.9/site-packages/nanome/service.py
       - ./interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
-
     tty: true
     stdin_open: true
     depends_on:
