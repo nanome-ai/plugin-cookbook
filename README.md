@@ -15,14 +15,22 @@ Requires Docker and Docker Compose
 Docker (https://docs.docker.com/get-docker/)
 Docker compose (https://docs.docker.com/compose/install/)
 
-
-## Using the cookbook
-1) build and deploy the application.
+1) build and deploy the application. You will need to be able to access the logs.
+For arg options, please see https://nanome.readthedocs.io/en/latest/plugins.html#arguments
 ```bash
 ./docker/build.sh
 ./docker/deploy.sh <plugin_args>
+docker-compose logs -f
 ```
-For arg options, please see https://nanome.readthedocs.io/en/latest/plugins.html#arguments
+
+2) After the cookbook is started, the logs should print a url which includes an access token. You are going to want to copy this url
+```
+cookbook_1  Jupyter Server 1.13.1 is running at:
+cookbook_1 or http://127.0.0.1:8888/lab?token=590c004ae394b198157e8c1e942bdb7128f4e5325390ff0b
+```
+
+3) In Nanome, open your Stacks menu, select the "Cookbook" plugin, and press "Activate" and "Run". This should open your VR Web Browser. It will also print a message to your logs, which contains a channel name for communicating with Redis.
+
 
 ## Overview
 - The plugin cookbook is comprised of 2 docker containers deployed using docker-compose, `cookbook`, and `plugin_service`, which communicate via Redis Publish/Subscribe pattern.
