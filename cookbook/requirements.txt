@@ -1,4 +1,4 @@
-nanome
+nanome==0.32.2
 jupyterlab
 dill
 redis

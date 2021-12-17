@@ -1,0 +1,9 @@
+name: base
+channels:
+  - conda-forge
+dependencies:
+  - jupyterlab
+  - pip
+  - rdkit
+  - pip:
+      - nanome==0.32.2
