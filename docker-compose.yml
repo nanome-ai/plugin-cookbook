@@ -20,7 +20,7 @@ services:
       - ./plugin_service:/app
       - ./service.py:/opt/conda/lib/python3.7/site-packages/nanome/service.py
       - ./interface.py:/opt/conda/lib/python3.7/site-packages/nanome/interface.py
-    command: python run.py -a ${NTS_HOST:-nts-dev.nanome.ai} -p ${NTS_PORT:-9999} -r -v
+    command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
   
   cookbook:
     build:
