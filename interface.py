@@ -5,7 +5,7 @@ import uuid
 
 from nanome import PluginInstance
 from nanome.util import Logs
-from nanome.service import PluginService
+from service import PluginService
 from nanome._internal._network._process_network import _ProcessNetwork
 
 
@@ -40,12 +40,19 @@ class RedisProcessNetwork(_ProcessNetwork):
     def __init__(self, redis_host, redis_port, redis_password, redis_channel=None):
         self.redis = redis.Redis(
             host=redis_host, port=redis_port, password=redis_password)
-        RedisProcessNetwork._instance = self
-    
-    def _send(self, to_send):
+        # RedisProcessNetwork._instance = self
+        self._command_id = 0
+
+    def _send(self, code, arg, expects_response):
         # print("Sending to Redis:", to_send)
-        self._plugin.redis_client.publish(self._plugin.redis_channel, to_send)
-    
+        breakpoint()
+        command_id = self._command_id
+        to_send = self._serializer.serialize_message(command_id, code, arg, version_table, expects_response)
+        # self._plugin.redis_client.publish(self._plugin.redis_channel)
+        output = self._rpc_request(to_send)
+        self._command_id = (command_id + 1) % 4294967295  # Cap by uint max
+        return command_id
+
     def _rpc_request(self, data):
         """Publish an RPC request to redis, and await response.
 
@@ -58,7 +65,7 @@ class RedisProcessNetwork(_ProcessNetwork):
         response_channel = str(uuid.uuid4())
         breakpoint()
         message = json.dumps({
-            'data': data, 
+            'data': data,
             'context': {},
             'response_channel': response_channel
         })
@@ -136,7 +143,7 @@ class PluginInstanceRedisInterface(PluginInstance):
             stream_interface = StreamRedisInterface(stream, self)
             response = (stream_interface, error)
         return response
-    
+
     def upload_shapes(self, shape_list):
         """Upload a list of shapes to the server.
 
@@ -147,4 +154,3 @@ class PluginInstanceRedisInterface(PluginInstance):
         args = [shape_list]
         response = self._rpc_request(function_name, args=args)
         return response
-    
