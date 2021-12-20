@@ -16,11 +16,12 @@ services:
       - NTS_HOST=${NTS_HOST:-}
       - NTS_PORT=${NTS_PORT:-}
       - ARGS=${ARGS:-}
-      # - PERMANENT_CHANNEL=a5100bcd-3b33-48dc-a8b0-67f88182f24e
+      - PERMANENT_CHANNEL=a5100bcd-3b33-48dc-a8b0-67f88182f24e
     depends_on:
       - redis
     volumes:
       - ./plugin_service:/app
+      - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.7/site-packages/nanome/
       - ./service.py:/opt/conda/lib/python3.7/site-packages/nanome/service.py
       - ./interface.py:/opt/conda/lib/python3.7/site-packages/nanome/interface.py
     command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
@@ -37,6 +38,7 @@ services:
       - 8888:8888
     volumes:
       - ./cookbook:/app
+      - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.9/site-packages/nanome/
       - ./service.py:/opt/conda/lib/python3.9/site-packages/nanome/service.py
       - ./interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
     tty: true
