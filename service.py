@@ -39,7 +39,9 @@ class PluginService(nanome.AsyncPluginInstance):
     @async_callback
     async def on_run(self):
         default_url = os.environ.get('DEFAULT_URL')
-        url = f'{default_url}?channel={self.redis_channel}'
+        jupyter_token = os.environ.get('JUPYTER_TOKEN')
+        url = f'{default_url}?token={jupyter_token}'
+        print(f'Opening {url}')
         self.open_url(url)
         await self.poll_redis_for_requests(self.redis_channel)
 

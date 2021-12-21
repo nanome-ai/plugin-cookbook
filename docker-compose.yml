@@ -16,6 +16,7 @@ services:
       - NTS_HOST=${NTS_HOST:-}
       - NTS_PORT=${NTS_PORT:-}
       - ARGS=${ARGS:-}
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
       # - PERMANENT_CHANNEL=a5100bcd-3b33-48dc-a8b0-67f88182f24e
     depends_on:
       - redis
@@ -35,6 +36,7 @@ services:
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
     ports:
       - 8888:8888
     volumes:
