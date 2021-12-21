@@ -47,7 +47,7 @@ services:
     stdin_open: true
     depends_on:
       - redis
-  # Required for Neo4j integration notebook. 
+  # Uncomment to use Neo4j integration notebook. 
   # neo4j:
   #   image: neo4j
   #   ports:
