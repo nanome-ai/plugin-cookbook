@@ -22,6 +22,7 @@ RUN npm install
 
 COPY ./jupyter_environ.yml .
 RUN conda env update -f jupyter_environ.yml
+RUN jupyter lab --generate-config
 
 COPY . .
 CMD jupyter lab --ip 0.0.0.0 --allow-root
