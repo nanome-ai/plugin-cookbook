@@ -1,0 +1,6 @@
+nanome==0.32.2
+jupyterlab
+dill
+redis
+py2neo
+ipdb

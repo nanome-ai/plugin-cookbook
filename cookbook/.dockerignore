@@ -1,0 +1,7 @@
+*
+!notebooks
+!requirements.txt
+!README.md
+!package.json
+!package-lock.json
+!jupyter_environ.yml
