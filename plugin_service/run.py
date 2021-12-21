@@ -5,6 +5,7 @@ from nanome.service import PluginService
 from nanome.api import Plugin
 import sys
 
+
 def main():
     parser = Plugin.create_parser()
     print(sys.argv)
@@ -14,7 +15,7 @@ def main():
     arg_name = args.name or []
     plugin_name = ' '.join(arg_name) or default_name
 
-    description = 'Calculate and visualize interatomic contacts between small and macro molecules.'
+    description = 'Interact with your Nanome session via Jupyter Notebook.'
     tags = ['Interactions']
 
     plugin = nanome.Plugin(plugin_name, description, tags)
