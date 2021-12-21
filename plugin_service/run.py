@@ -8,7 +8,6 @@ import sys
 
 def main():
     parser = Plugin.create_parser()
-    print(sys.argv)
     args, _ = parser.parse_known_args()
 
     default_name = 'Cookbook'
