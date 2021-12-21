@@ -66,9 +66,9 @@ class PluginService(nanome.AsyncPluginInstance):
                 Logs.message(f"Received Request: {data.get('function')}")
                 fn_name = data['function']
                 args = self.unpickle_data(data['args'])
-                kwargs= self.unpickle_data(data['kwargs'])
+                kwargs = self.unpickle_data(data['kwargs'])
                 response_channel = data['response_channel']
-                
+
                 function_to_call = getattr(self, fn_name)
                 try:
                     response = await function_to_call(*args, **kwargs)
@@ -104,18 +104,18 @@ class PluginService(nanome.AsyncPluginInstance):
 
     async def create_writing_stream(self, indices_list, stream_type, callback=None):
         """After creating stream, save it for future lookups."""
-        response =  await super().create_writing_stream(indices_list, stream_type, callback=callback)
+        response = await super().create_writing_stream(indices_list, stream_type, callback=callback)
         stream, _ = response
         if stream:
             self.streams.append(stream)
         return response
-    
+
     def stream_update(self, stream_id, stream_data):
         """Function to update stream."""
         stream = next(strm for strm in self.streams if strm._Stream__id == stream_id)
         output = stream.update(stream_data)
         return output
-    
+
     def stream_destroy(self, stream_id):
         """Function to destroy stream."""
         stream = next(strm for strm in self.streams if strm._Stream__id == stream_id)
