@@ -121,7 +121,7 @@ class PluginInstanceRedisInterface:
         pickled_data = message['data']
         response_data = PluginService.unpickle_data(pickled_data)
         return response_data
-    
+
     def upload_shapes(self, shape_list):
         """Upload a list of shapes to the server.
 
@@ -132,4 +132,3 @@ class PluginInstanceRedisInterface:
         args = [shape_list]
         response = self._rpc_request(function_name, args=args)
         return response
-    
