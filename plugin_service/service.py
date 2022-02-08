@@ -132,3 +132,14 @@ class PluginService(nanome.AsyncPluginInstance):
         for shape in shape_list:
             print(shape.index)
         return shape_list
+    
+    def get_plugin_data(self):
+        """Return data required for interface to serialize message requests."""
+        plugin_id = self._network._plugin_id
+        session_id = ''
+        version_table = _TypeSerializer.get_version_table()
+        data = {
+            'plugin_id': plugin_id,
+            'version_table': version_table
+        }
+        return data

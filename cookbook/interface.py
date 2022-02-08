@@ -24,6 +24,7 @@ def unpickle_data(pickled_data):
     pickle_bytes.close()
     return unpickled_data
 
+
 class StreamRedisInterface:
     """Gets wrapped around a stream object on creation, and is used to send data to the stream through redis.
 
@@ -165,3 +166,14 @@ class PluginInstanceRedisInterface:
         args = [shape_list]
         response = self._rpc_request(function_name, args=args)
         return response
+    
+    def get_plugin_data(self):
+        """Upload a list of shapes to the server.
+
+        :arg: shape_list: List of shapes to upload.
+        :rtype: list. List of shape IDs.
+        """
+        function_name = 'get_plugin_data'
+        response = self._rpc_request(function_name)
+        return response
+
