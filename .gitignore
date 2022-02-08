@@ -18,3 +18,4 @@ cookbook/.ipython
 cookbook/.nanome_lib
 .env*
 __pycache__
+.vscode
