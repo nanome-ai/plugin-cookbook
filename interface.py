@@ -2,11 +2,27 @@ import json
 import redis
 import time
 import uuid
-
+import base64
+import dill
+import io
 from nanome import PluginInstance
 from nanome.util import Logs
-from nanome.service import PluginService
 
+
+def pickle_data(data):
+    """Return the stringified bytes of pickled data."""
+    bytes_output = io.BytesIO()
+    dill.dump(data, bytes_output)
+    bytes_output_base64 = base64.b64encode(bytes_output.getvalue()).decode()
+    bytes_output.close()
+    return bytes_output_base64
+
+def unpickle_data(pickled_data):
+    """Unpickle data into its original python version."""
+    pickle_bytes = io.BytesIO(base64.b64decode(pickled_data))
+    unpickled_data = dill.loads(pickle_bytes.read())
+    pickle_bytes.close()
+    return unpickled_data
 
 class StreamRedisInterface:
     """Gets wrapped around a stream object on creation, and is used to send data to the stream through redis.
@@ -91,8 +107,8 @@ class PluginInstanceRedisInterface:
             'function': function_name,
             'args': args,
             'kwargs': kwargs,
-            'args': PluginService.pickle_data(args),
-            'kwargs': PluginService.pickle_data(kwargs),
+            'args': self.pickle_data(args),
+            'kwargs': self.pickle_data(kwargs),
             'response_channel': response_channel
         })
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
@@ -116,10 +132,27 @@ class PluginInstanceRedisInterface:
                 return response_data
 
     @staticmethod
+    def pickle_data(data):
+        """Return the stringified bytes of pickled data."""
+        bytes_output = io.BytesIO()
+        dill.dump(data, bytes_output)
+        bytes_output_base64 = base64.b64encode(bytes_output.getvalue()).decode()
+        bytes_output.close()
+        return bytes_output_base64
+
+    @staticmethod
+    def unpickle_data(pickled_data):
+        """Unpickle data into its original python version."""
+        pickle_bytes = io.BytesIO(base64.b64decode(pickled_data))
+        unpickled_data = dill.loads(pickle_bytes.read())
+        pickle_bytes.close()
+        return unpickled_data
+
+    @staticmethod
     def unpickle_message(message):
         """Unpickle data from Redis message, and return contents."""
         pickled_data = message['data']
-        response_data = PluginService.unpickle_data(pickled_data)
+        response_data = unpickle_data(pickled_data)
         return response_data
 
     def upload_shapes(self, shape_list):

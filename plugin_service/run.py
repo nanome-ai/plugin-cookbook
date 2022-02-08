@@ -1,9 +1,8 @@
 import os
 import nanome
 
-from nanome.service import PluginService
+from service import PluginService
 from nanome.api import Plugin
-import sys
 
 
 def main():
@@ -23,12 +22,15 @@ def main():
     # CLI Args take priority over environment variables for NTS settnigs
     host = args.host or os.environ.get('NTS_HOST')
     port = args.port or os.environ.get('NTS_PORT') or 0
+    key = args.keyfile or os.environ.get('NTS_KEY')
 
     configs = {}
     if host:
         configs['host'] = host
     if port:
         configs['port'] = int(port)
+    if key:
+        configs['key'] = key
     plugin.run(**configs)
 
 
