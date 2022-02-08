@@ -25,8 +25,8 @@ class PluginService(nanome.AsyncPluginInstance):
     @async_callback
     async def start(self):
         # Create Redis channel name to send to frontend to publish to
-        permanent_channel = os.environ.get('PERMANENT_CHANNEL')
-        self.redis_channel = permanent_channel if permanent_channel else str(uuid.uuid4())
+        redis_channel = os.environ.get('REDIS_CHANNEL')
+        self.redis_channel = redis_channel if redis_channel else str(uuid.uuid4())
         Logs.message(f"Starting {self.__class__.__name__} on Redis Channel {self.redis_channel}")
 
         # We need to increase the recursion limit in order to properly serialize Complexes
