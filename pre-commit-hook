@@ -1,5 +1,4 @@
 #!/bin/sh
-echo "Running pre-commit-hook"
 jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace */*.ipynb
 
 git add .
