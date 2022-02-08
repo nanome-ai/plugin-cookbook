@@ -17,6 +17,7 @@ def pickle_data(data):
     bytes_output.close()
     return bytes_output_base64
 
+
 def unpickle_data(pickled_data):
     """Unpickle data into its original python version."""
     pickle_bytes = io.BytesIO(base64.b64decode(pickled_data))
@@ -108,8 +109,8 @@ class PluginInstanceRedisInterface:
             'function': function_name,
             'args': args,
             'kwargs': kwargs,
-            'args': self.pickle_data(args),
-            'kwargs': self.pickle_data(kwargs),
+            'args': pickle_data(args),
+            'kwargs': pickle_data(kwargs),
             'response_channel': response_channel
         })
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
@@ -131,23 +132,6 @@ class PluginInstanceRedisInterface:
                 response_data = self.unpickle_message(message)
                 pubsub.unsubscribe()
                 return response_data
-
-    @staticmethod
-    def pickle_data(data):
-        """Return the stringified bytes of pickled data."""
-        bytes_output = io.BytesIO()
-        dill.dump(data, bytes_output)
-        bytes_output_base64 = base64.b64encode(bytes_output.getvalue()).decode()
-        bytes_output.close()
-        return bytes_output_base64
-
-    @staticmethod
-    def unpickle_data(pickled_data):
-        """Unpickle data into its original python version."""
-        pickle_bytes = io.BytesIO(base64.b64decode(pickled_data))
-        unpickled_data = dill.loads(pickle_bytes.read())
-        pickle_bytes.close()
-        return unpickled_data
 
     @staticmethod
     def unpickle_message(message):
@@ -176,4 +160,3 @@ class PluginInstanceRedisInterface:
         function_name = 'get_plugin_data'
         response = self._rpc_request(function_name)
         return response
-

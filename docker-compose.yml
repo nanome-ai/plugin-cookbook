@@ -2,7 +2,6 @@ version: '3'
 services:
   redis:
     image: redis
-  
   plugin_service:
     build:
       context: ./plugin_service
@@ -40,7 +39,6 @@ services:
       - 8888:8888
     volumes:
       - ./cookbook:/app
-      - ./interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
     tty: true
     stdin_open: true
     depends_on:
