@@ -1,3 +1,4 @@
+# For some reason installing this environment fails. Figure out why.
 name: base
 channels:
   - conda-forge
@@ -6,4 +7,9 @@ dependencies:
   - pip
   - rdkit
   - pip:
-      - nanome==0.32.2
+      - nanome==0.34.3
+      - jupyterlab
+      - dill
+      - redis
+      - py2neo
+      - ipdb

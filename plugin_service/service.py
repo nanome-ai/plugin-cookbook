@@ -11,6 +11,8 @@ import uuid
 import nanome
 from nanome.util import async_callback, Logs
 from nanome.util.enums import NotificationTypes
+from nanome._internal._util._serializers import _TypeSerializer
+
 
 BASE_PATH = os.path.dirname(f'{os.path.realpath(__file__)}')
 MENU_PATH = os.path.join(BASE_PATH, 'default_menu.json')
@@ -25,14 +27,12 @@ class PluginService(nanome.AsyncPluginInstance):
     @async_callback
     async def start(self):
         # Create Redis channel name to send to frontend to publish to
-        permanent_channel = os.environ.get('PERMANENT_CHANNEL')
-        self.redis_channel = permanent_channel if permanent_channel else str(uuid.uuid4())
+        redis_channel = os.environ.get('REDIS_CHANNEL')
+        self.redis_channel = redis_channel if redis_channel else str(uuid.uuid4())
         Logs.message(f"Starting {self.__class__.__name__} on Redis Channel {self.redis_channel}")
-
         # We need to increase the recursion limit in order to properly serialize Complexes
         recursion_limit = 100000
         sys.setrecursionlimit(recursion_limit)
-
         self.streams = []
         self.shapes = []
 
@@ -132,3 +132,15 @@ class PluginService(nanome.AsyncPluginInstance):
         for shape in shape_list:
             print(shape.index)
         return shape_list
+
+    def get_plugin_data(self):
+        """Return data required for interface to serialize message requests."""
+        plugin_id = self._network._plugin_id
+        session_id = self._network._session_id
+        version_table = _TypeSerializer.get_version_table()
+        data = {
+            'plugin_id': plugin_id,
+            'session_id': session_id,
+            'version_table': version_table
+        }
+        return data

@@ -2,7 +2,6 @@ version: '3'
 services:
   redis:
     image: redis
-  
   plugin_service:
     build:
       context: ./plugin_service
@@ -15,17 +14,15 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - NTS_HOST=${NTS_HOST:-}
       - NTS_PORT=${NTS_PORT:-}
+      - NTS_KEY=${NTS_KEY:-}
       - ARGS=${ARGS:-}
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
-      # - PERMANENT_CHANNEL=a5100bcd-3b33-48dc-a8b0-67f88182f24e
+      - REDIS_CHANNEL=${REDIS_CHANNEL:-}
+
     depends_on:
       - redis
     volumes:
       - ./plugin_service:/app
-      # Note: service.py and interface.py inserted into nanome-lib because for 
-      # serialization purposes, they need to be accessible by both the plugin and the client
-      - ./service.py:/opt/conda/lib/python3.7/site-packages/nanome/service.py
-      - ./interface.py:/opt/conda/lib/python3.7/site-packages/nanome/interface.py
     command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
   
   cookbook:
@@ -37,12 +34,14 @@ services:
       - REDIS_PORT=${REDIS_PORT:-6379}
       - JUPYTER_ENABLE_LAB=yes
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
+      - REDIS_CHANNEL=${REDIS_CHANNEL:-}
     ports:
       - 8888:8888
     volumes:
       - ./cookbook:/app
-      - ./service.py:/opt/conda/lib/python3.9/site-packages/nanome/service.py
-      - ./interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
+      # Service code is required in cookbook, for stream deserialization.
+      # This is a little hacky, but it works.
+      - ./plugin_service/service.py:/app/notebooks/service.py
     tty: true
     stdin_open: true
     depends_on:

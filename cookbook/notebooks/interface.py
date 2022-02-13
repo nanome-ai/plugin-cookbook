@@ -2,10 +2,28 @@ import json
 import redis
 import time
 import uuid
-
+import base64
+import dill
+import io
 from nanome import PluginInstance
 from nanome.util import Logs
-from nanome.service import PluginService
+
+
+def pickle_data(data):
+    """Return the stringified bytes of pickled data."""
+    bytes_output = io.BytesIO()
+    dill.dump(data, bytes_output)
+    bytes_output_base64 = base64.b64encode(bytes_output.getvalue()).decode()
+    bytes_output.close()
+    return bytes_output_base64
+
+
+def unpickle_data(pickled_data):
+    """Unpickle data into its original python version."""
+    pickle_bytes = io.BytesIO(base64.b64decode(pickled_data))
+    unpickled_data = dill.loads(pickle_bytes.read())
+    pickle_bytes.close()
+    return unpickled_data
 
 
 class StreamRedisInterface:
@@ -91,8 +109,8 @@ class PluginInstanceRedisInterface:
             'function': function_name,
             'args': args,
             'kwargs': kwargs,
-            'args': PluginService.pickle_data(args),
-            'kwargs': PluginService.pickle_data(kwargs),
+            'args': pickle_data(args),
+            'kwargs': pickle_data(kwargs),
             'response_channel': response_channel
         })
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
@@ -119,7 +137,7 @@ class PluginInstanceRedisInterface:
     def unpickle_message(message):
         """Unpickle data from Redis message, and return contents."""
         pickled_data = message['data']
-        response_data = PluginService.unpickle_data(pickled_data)
+        response_data = unpickle_data(pickled_data)
         return response_data
 
     def upload_shapes(self, shape_list):
@@ -131,4 +149,14 @@ class PluginInstanceRedisInterface:
         function_name = 'upload_shapes'
         args = [shape_list]
         response = self._rpc_request(function_name, args=args)
+        return response
+
+    def get_plugin_data(self):
+        """Upload a list of shapes to the server.
+
+        :arg: shape_list: List of shapes to upload.
+        :rtype: list. List of shape IDs.
+        """
+        function_name = 'get_plugin_data'
+        response = self._rpc_request(function_name)
         return response

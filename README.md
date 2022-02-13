@@ -9,7 +9,6 @@ These how-tos are a supplement to the API documentation (https://nanome.readthed
 
 A new feature we're testing in this repo is communicating with a running PluginInstance via RPC requests using Redis Pub/Sub, which allows a user interact with their nanome session directly from the web browser (Desktop or VR).
 
-
 ## Installation
 
 ### Requirements:

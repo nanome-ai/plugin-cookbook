@@ -16,3 +16,6 @@ cookbook/.jupyter
 cookbook/.local
 cookbook/.ipython
 cookbook/.nanome_lib
+.env*
+__pycache__
+.vscode
