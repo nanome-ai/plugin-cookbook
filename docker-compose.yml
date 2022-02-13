@@ -39,6 +39,9 @@ services:
       - 8888:8888
     volumes:
       - ./cookbook:/app
+      # Service code is required in cookbook, for stream deserialization.
+      # This is a little hacky, but it works.
+      - ./plugin_service/service.py:/app/notebooks/service.py
     tty: true
     stdin_open: true
     depends_on:
