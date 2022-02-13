@@ -150,7 +150,7 @@ class PluginInstanceRedisInterface:
         args = [shape_list]
         response = self._rpc_request(function_name, args=args)
         return response
-    
+
     def get_plugin_data(self):
         """Upload a list of shapes to the server.
 
