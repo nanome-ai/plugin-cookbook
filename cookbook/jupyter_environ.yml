@@ -6,4 +6,9 @@ dependencies:
   - pip
   - rdkit
   - pip:
-      - nanome==0.32.2
+      - nanome==0.34.9
+      - jupyterlab
+      - dill
+      - redis
+      - py2neo
+      - ipdb
