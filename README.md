@@ -12,8 +12,8 @@ A new feature we're testing in this repo is communicating with a running PluginI
 ## Installation
 
 ### Requirements:
-Docker (https://docs.docker.com/get-docker/)
-Docker Compose (https://docs.docker.com/compose/install/)
+- Docker (https://docs.docker.com/get-docker/)
+- Docker Compose (https://docs.docker.com/compose/install/)
 
 ### Clone, Build,  and deploy
 1) Use Git to clone this repository to your computer.
