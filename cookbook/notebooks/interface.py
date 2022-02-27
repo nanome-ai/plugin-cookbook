@@ -33,13 +33,10 @@ class StreamRedisInterface:
     This should not be called explicitly, but used through the RedisPluginInterface class.
     """
 
-    def __init__(self, stream, plugin_interface):
-        self._stream = stream
+    def __init__(self, stream_data, plugin_interface):
+        self.stream_id = stream_data['stream_id']
         self._plugin_interface = plugin_interface
 
-    @property
-    def stream_id(self):
-        return self._stream._Stream__id
 
     def update(self, stream_data):
         response = self._plugin_interface._rpc_request(

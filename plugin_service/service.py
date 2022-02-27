@@ -13,7 +13,6 @@ from nanome.util import async_callback, Logs
 from nanome.util.enums import NotificationTypes
 from nanome._internal._util._serializers import _TypeSerializer
 
-
 BASE_PATH = os.path.dirname(f'{os.path.realpath(__file__)}')
 MENU_PATH = os.path.join(BASE_PATH, 'default_menu.json')
 
@@ -107,10 +106,13 @@ class PluginService(nanome.AsyncPluginInstance):
     async def create_writing_stream(self, indices_list, stream_type, callback=None):
         """After creating stream, save it for future lookups."""
         response = await super().create_writing_stream(indices_list, stream_type, callback=callback)
-        stream, _ = response
+        stream, error = response
         if stream:
             self.streams.append(stream)
-        return response
+
+        stream_data = {"stream_id": stream._Stream__id}
+        output = (stream_data, error)
+        return output
 
     def stream_update(self, stream_id, stream_data):
         """Function to update stream."""

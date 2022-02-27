@@ -22,7 +22,7 @@ def main():
     # CLI Args take priority over environment variables for NTS settnigs
     host = args.host or os.environ.get('NTS_HOST')
     port = args.port or os.environ.get('NTS_PORT') or 0
-    key = args.keyfile or os.environ.get('NTS_KEY')
+    key = args.key or os.environ.get('NTS_KEY')
 
     configs = {}
     if host:
