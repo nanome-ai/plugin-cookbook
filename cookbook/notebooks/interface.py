@@ -7,6 +7,8 @@ import dill
 import io
 from nanome import PluginInstance
 from nanome.util import Logs
+from nanome._internal._network._commands._callbacks import _Messages
+from nanome._internal._network._serialization._serializer import Serializer
 
 
 def pickle_data(data):
@@ -37,7 +39,6 @@ class StreamRedisInterface:
         self.stream_id = stream_data['stream_id']
         self._plugin_interface = plugin_interface
 
-
     def update(self, stream_data):
         response = self._plugin_interface._rpc_request(
             'stream_update', args=[self.stream_id, stream_data])
@@ -61,6 +62,12 @@ class PluginInstanceRedisInterface:
         self.redis = redis.Redis(host=redis_host, port=redis_port, password=redis_password)
         self.plugin_class = PluginInstance
         self.channel = redis_channel
+        self.serializer = Serializer()
+        if redis_channel:
+            print("Getting Plugin data")
+            self.plugin_data = self.get_plugin_data()
+        self._command_id = 0
+        print('here')
 
     def set_channel(self, value):
         self.channel = value
@@ -92,7 +99,7 @@ class PluginInstanceRedisInterface:
             response = (stream_interface, error)
         return response
 
-    def _rpc_request(self, function_name, args=None, kwargs=None):
+    def _rpc_request(self, function_name, args=None, kwargs=None, to_send=None):
         """Publish an RPC request to redis, and await response.
 
         :rtype: data returned by PluginInstance function called by RPC.
@@ -100,16 +107,22 @@ class PluginInstanceRedisInterface:
         args = args or []
         kwargs = kwargs or {}
 
+            
         # Set random channel name for response
         response_channel = str(uuid.uuid4())
-        message = json.dumps({
+        payload = {
             'function': function_name,
-            'args': args,
-            'kwargs': kwargs,
-            'args': pickle_data(args),
-            'kwargs': pickle_data(kwargs),
             'response_channel': response_channel
-        })
+        }
+
+        if to_send is not None:
+            message = to_send.tobytes()
+        else:
+            payload.update({
+                'args': pickle_data(args),
+                'kwargs': pickle_data(kwargs),
+            })
+            message = json.dumps(payload)
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
         # Subscribe to response channel before publishing message
         pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
@@ -155,5 +168,104 @@ class PluginInstanceRedisInterface:
         :rtype: list. List of shape IDs.
         """
         function_name = 'get_plugin_data'
+        breakpoint()
         response = self._rpc_request(function_name)
         return response
+    
+    def serialize_message(self, code, args):
+        """Return serialized command messages as expected by NTS."""
+        command_id = self._command_id
+        version_table = self.plugin_data['version_table']
+        expects_response = False
+        to_send = self.serializer.serialize_message(command_id, code, args, version_table, expects_response)
+        self._command_id += 1
+        return to_send
+
+    def request_complex_list(self):
+        breakpoint()
+        to_send = self.serialize_message(_Messages.complex_list_request, None)
+        self._rpc_request('request_complex_list', to_send=to_send)
+
+    def request_workspace(self, callback=None):
+        pass
+
+
+    def request_complexes(self, id_list, callback=None):
+        pass
+
+    def update_workspace(self, workspace):
+        pass
+
+    def send_notification(self, type, message):
+        pass
+
+    def update_structures_deep(self, structures, callback=None):
+        pass
+
+    def update_structures_shallow(self, structures):
+        pass
+
+    def zoom_on_structures(self, structures, callback=None):
+        pass
+
+    def center_on_structures(self, structures, callback=None):
+        pass
+
+    def add_to_workspace(self, complex_list, callback=None):
+        
+        pass
+
+    def remove_from_workspace(self, complex_list, callback=None):
+        pass
+
+    def update_menu(self, menu, shallow=False):
+        pass
+
+    def update_content(self, *content):
+        pass
+
+    def update_node(self, *nodes):
+        pass
+
+    def set_menu_transform(self, index, position, rotation, scale):
+        pass
+
+    def request_menu_transform(self, index, callback=None):
+        pass
+
+    def save_files(self, file_list, callback=None):
+        pass
+
+    def add_bonds(self, complex_list, callback=None, fast_mode=None):
+        pass
+
+    def add_dssp(self, complex_list, callback=None):
+        pass
+
+    def add_volume(self, complex, volume, properties, complex_to_align_index=-1, callback=None):
+        pass
+
+    def open_url(self, url, desktop_browser=False):
+        pass
+
+    def request_presenter_info(self, callback=None):
+        pass
+
+    def request_controller_transforms(self, callback=None):
+        pass
+
+    def set_plugin_list_button(self, button, text=None, usable=None):
+        pass
+
+    def send_files_to_load(self, files_list, callback=None):
+        pass
+
+    def request_export(self, format, callback=None, entities=None):
+        pass
+
+    def apply_color_scheme(self, color_scheme, target, only_carbons):
+        pass
+
+    def plugin_files_path(self):
+        pass
+
