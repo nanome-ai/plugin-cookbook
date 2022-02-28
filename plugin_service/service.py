@@ -5,7 +5,6 @@ import json
 import os
 import redis
 import struct
-import sys
 import uuid
 
 import nanome
@@ -31,8 +30,6 @@ class PluginService(nanome.AsyncPluginInstance):
         self.redis_channel = redis_channel if redis_channel else str(uuid.uuid4())
         Logs.message(f"Starting {self.__class__.__name__} on Redis Channel {self.redis_channel}")
         # We need to increase the recursion limit in order to properly serialize Complexes
-        recursion_limit = 100000
-        sys.setrecursionlimit(recursion_limit)
         self.streams = []
         self.shapes = []
 
@@ -45,7 +42,7 @@ class PluginService(nanome.AsyncPluginInstance):
         self.open_url(url)
         await self.poll_redis_for_requests(self.redis_channel)
 
-    def send(self, to_send):
+    def send_to_nts(self, to_send):
         network = self._network
         command_id = network._command_id
         packet = _Packet()
@@ -59,6 +56,9 @@ class PluginService(nanome.AsyncPluginInstance):
             pass  # Ignore, as it will be closed later on, during _receive
         network._command_id = (command_id + 1) % 4294967295  # Cap by uint max
         return command_id
+
+    def callback(self, *args, **kwargs):
+        print('here')
 
     @async_callback
     async def poll_redis_for_requests(self, redis_channel):
@@ -80,11 +80,17 @@ class PluginService(nanome.AsyncPluginInstance):
                     error_message = 'JSON Decode Failure'
                     self.send_notification(NotificationTypes.error, error_message)
 
-                Logs.message(f"Received Request: {data.get('function')}")
+                if data.get("function"):
+                    Logs.message(f"Received Request: {data.get('function')}")
+                else:
+                    Logs.message("Received serialized request")
                 if 'to_send' in data:
                     to_send = str.encode(data['to_send'])
-                    command_id = self.send(to_send)
-                    print('here')
+                    # version_table = self._network._ProcessNetwork__version_table
+                    # data = self._network._serializer.deserialize_command(to_send, version_table)
+                    command_id = self.send_to_nts(to_send)
+
+                    self._save_callback(command_id, self.callback)
                     import asyncio
                     await asyncio.sleep(2)
                 else:
@@ -92,8 +98,8 @@ class PluginService(nanome.AsyncPluginInstance):
                     args = self.unpickle_data(data['args'])
                     kwargs = self.unpickle_data(data['kwargs'])
                     response_channel = data['response_channel']
-
                     function_to_call = getattr(self, fn_name)
+
                     try:
                         response = await function_to_call(*args, **kwargs)
                     except (TypeError, RuntimeError) as e:
@@ -133,7 +139,6 @@ class PluginService(nanome.AsyncPluginInstance):
         stream, error = response
         if stream:
             self.streams.append(stream)
-
         stream_data = {"stream_id": stream._Stream__id}
         output = (stream_data, error)
         return output

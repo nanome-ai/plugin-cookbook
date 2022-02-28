@@ -62,7 +62,8 @@ class RedisNetwork:
         self._command_id = 0
 
     def _send(self, code, arg, expects_response):
-        to_send = self.serializer.serialize_message(self._command_id, code, arg, self.plugin_data['version_table'], expects_response)
+        version_table = self.plugin_data['version_table']
+        to_send = self.serializer.serialize_message(self._command_id, code, arg, version_table, expects_response)
         self._rpc_request(to_send=to_send)
         self._command_id += 1
     
@@ -79,7 +80,7 @@ class RedisNetwork:
         return to_send
 
     def get_plugin_data(self):
-        """Upload a list of shapes to the server.
+        """Retrieve data from plugin required for serialization.
 
         :arg: shape_list: List of shapes to upload.
         :rtype: list. List of shape IDs.

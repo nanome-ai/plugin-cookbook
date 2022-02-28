@@ -10,6 +10,6 @@ redis_password = ''
 redis_channel = "a5100bcd-3b33-48dc-a8b0-67f88182f24e"
 plugin_instance = RedisPluginInstance()
 plugin_instance.setup_redis_network(redis_host, redis_port, redis_password, redis_channel)
-breakpoint()
+print("requesting complex list")
 complex_list = plugin_instance.request_complex_list()
 print(complex_list)
