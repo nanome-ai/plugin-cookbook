@@ -116,13 +116,15 @@ class PluginInstanceRedisInterface:
         }
 
         if to_send is not None:
-            message = to_send.tobytes()
+            payload.update({
+                'to_send': to_send.tobytes().decode('utf-8')
+            })
         else:
             payload.update({
                 'args': pickle_data(args),
                 'kwargs': pickle_data(kwargs),
             })
-            message = json.dumps(payload)
+        message = json.dumps(payload)
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
         # Subscribe to response channel before publishing message
         pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
@@ -168,7 +170,6 @@ class PluginInstanceRedisInterface:
         :rtype: list. List of shape IDs.
         """
         function_name = 'get_plugin_data'
-        breakpoint()
         response = self._rpc_request(function_name)
         return response
     
@@ -176,96 +177,22 @@ class PluginInstanceRedisInterface:
         """Return serialized command messages as expected by NTS."""
         command_id = self._command_id
         version_table = self.plugin_data['version_table']
-        expects_response = False
+        expects_response = True
         to_send = self.serializer.serialize_message(command_id, code, args, version_table, expects_response)
         self._command_id += 1
         return to_send
 
     def request_complex_list(self):
-        breakpoint()
         to_send = self.serialize_message(_Messages.complex_list_request, None)
         self._rpc_request('request_complex_list', to_send=to_send)
 
-    def request_workspace(self, callback=None):
+
+class RedisNetwork:
+    
+    def _send(cls, code, arg, expects_response):
         pass
 
 
-    def request_complexes(self, id_list, callback=None):
-        pass
+class RedisPluginInstance(PluginInstance):
 
-    def update_workspace(self, workspace):
-        pass
-
-    def send_notification(self, type, message):
-        pass
-
-    def update_structures_deep(self, structures, callback=None):
-        pass
-
-    def update_structures_shallow(self, structures):
-        pass
-
-    def zoom_on_structures(self, structures, callback=None):
-        pass
-
-    def center_on_structures(self, structures, callback=None):
-        pass
-
-    def add_to_workspace(self, complex_list, callback=None):
-        
-        pass
-
-    def remove_from_workspace(self, complex_list, callback=None):
-        pass
-
-    def update_menu(self, menu, shallow=False):
-        pass
-
-    def update_content(self, *content):
-        pass
-
-    def update_node(self, *nodes):
-        pass
-
-    def set_menu_transform(self, index, position, rotation, scale):
-        pass
-
-    def request_menu_transform(self, index, callback=None):
-        pass
-
-    def save_files(self, file_list, callback=None):
-        pass
-
-    def add_bonds(self, complex_list, callback=None, fast_mode=None):
-        pass
-
-    def add_dssp(self, complex_list, callback=None):
-        pass
-
-    def add_volume(self, complex, volume, properties, complex_to_align_index=-1, callback=None):
-        pass
-
-    def open_url(self, url, desktop_browser=False):
-        pass
-
-    def request_presenter_info(self, callback=None):
-        pass
-
-    def request_controller_transforms(self, callback=None):
-        pass
-
-    def set_plugin_list_button(self, button, text=None, usable=None):
-        pass
-
-    def send_files_to_load(self, files_list, callback=None):
-        pass
-
-    def request_export(self, format, callback=None, entities=None):
-        pass
-
-    def apply_color_scheme(self, color_scheme, target, only_carbons):
-        pass
-
-    def plugin_files_path(self):
-        pass
-
+    _network = RedisNetwork()
