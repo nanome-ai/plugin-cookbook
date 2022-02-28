@@ -49,57 +49,46 @@ class StreamRedisInterface:
             'stream_destroy', args=[self.stream_id])
         return response
 
-
-class PluginInstanceRedisInterface:
-    """Provides interface for publishing PluginInstance RPC requests over Redis.
-
-    The idea is to feel like you're using the standard
-    PluginInstance, but all calls are being made through Redis.
-    """
+class RedisNetwork:
+    """"Replacement for _ProcessNetwork class that routes messages through Redis."""
 
     def __init__(self, redis_host, redis_port, redis_password, redis_channel=None):
-        """Initialize the Connection to Redis."""
         self.redis = redis.Redis(host=redis_host, port=redis_port, password=redis_password)
-        self.plugin_class = PluginInstance
         self.channel = redis_channel
         self.serializer = Serializer()
         if redis_channel:
             print("Getting Plugin data")
             self.plugin_data = self.get_plugin_data()
         self._command_id = 0
-        print('here')
 
+    def _send(self, code, arg, expects_response):
+        to_send = self.serializer.serialize_message(self._command_id, code, arg, self.plugin_data['version_table'], expects_response)
+        self._rpc_request(to_send=to_send)
+        self._command_id += 1
+    
     def set_channel(self, value):
         self.channel = value
 
-    def __getattr__(self, name):
-        """Override superclass getattr to provide a proxy for the PluginInstance class.
+    def serialize_message(self, code, args):
+        """Return serialized command messages as expected by NTS."""
+        command_id = self._command_id
+        version_table = self.plugin_data['version_table']
+        expects_response = True
+        to_send = self.serializer.serialize_message(command_id, code, args, version_table, expects_response)
+        self._command_id += 1
+        return to_send
 
-        If a user calls an attribute on the Interface that exists on the PluginInstance,
-        return a proxy call to Redis.
+    def get_plugin_data(self):
+        """Upload a list of shapes to the server.
+
+        :arg: shape_list: List of shapes to upload.
+        :rtype: list. List of shape IDs.
         """
-        plugin_instance_api = iter(attr for attr in dir(self.plugin_class) if not attr.startswith('_'))
-        interface_override = iter(attr for attr in dir(self) if not attr.startswith('_'))
-        # Only intercept if the property is a public property of a PluginInstance,
-        # and theres no override on this class.
-        if name in plugin_instance_api and name not in interface_override:
-            def proxy_redis_message(*args, **kwargs):
-                response = self._rpc_request(name, args, kwargs)
-                return response
-            return proxy_redis_message
-        return getattr(self, name)
-
-    def create_writing_stream(self, atom_indices, stream_type):
-        """Return a stream wrapped in the RedisStreamInterface"""
-        function_name = 'create_writing_stream'
-        args = [atom_indices, stream_type]
-        stream, error = self._rpc_request(function_name, args=args)
-        if stream:
-            stream_interface = StreamRedisInterface(stream, self)
-            response = (stream_interface, error)
+        function_name = 'get_plugin_data'
+        response = self._rpc_request(function_name)
         return response
 
-    def _rpc_request(self, function_name, args=None, kwargs=None, to_send=None):
+    def _rpc_request(self, function_name=None, args=None, kwargs=None, to_send=None):
         """Publish an RPC request to redis, and await response.
 
         :rtype: data returned by PluginInstance function called by RPC.
@@ -107,20 +96,18 @@ class PluginInstanceRedisInterface:
         args = args or []
         kwargs = kwargs or {}
 
-            
         # Set random channel name for response
         response_channel = str(uuid.uuid4())
         payload = {
-            'function': function_name,
             'response_channel': response_channel
         }
-
         if to_send is not None:
             payload.update({
                 'to_send': to_send.tobytes().decode('utf-8')
             })
-        else:
+        elif function_name is not None:
             payload.update({
+                'function': function_name,
                 'args': pickle_data(args),
                 'kwargs': pickle_data(kwargs),
             })
@@ -152,6 +139,13 @@ class PluginInstanceRedisInterface:
         response_data = unpickle_data(pickled_data)
         return response_data
 
+
+class RedisPluginInstance(PluginInstance):
+
+    def setup_redis_network(self, redis_host, redis_port, redis_password, redis_channel=None):
+        self._network = RedisNetwork(
+            redis_host, redis_port, redis_password, redis_channel=redis_channel)
+
     def upload_shapes(self, shape_list):
         """Upload a list of shapes to the server.
 
@@ -163,36 +157,12 @@ class PluginInstanceRedisInterface:
         response = self._rpc_request(function_name, args=args)
         return response
 
-    def get_plugin_data(self):
-        """Upload a list of shapes to the server.
-
-        :arg: shape_list: List of shapes to upload.
-        :rtype: list. List of shape IDs.
-        """
-        function_name = 'get_plugin_data'
-        response = self._rpc_request(function_name)
+    def create_writing_stream(self, atom_indices, stream_type):
+        """Return a stream wrapped in the RedisStreamInterface"""
+        function_name = 'create_writing_stream'
+        args = [atom_indices, stream_type]
+        stream, error = self._rpc_request(function_name, args=args)
+        if stream:
+            stream_interface = StreamRedisInterface(stream, self)
+            response = (stream_interface, error)
         return response
-    
-    def serialize_message(self, code, args):
-        """Return serialized command messages as expected by NTS."""
-        command_id = self._command_id
-        version_table = self.plugin_data['version_table']
-        expects_response = True
-        to_send = self.serializer.serialize_message(command_id, code, args, version_table, expects_response)
-        self._command_id += 1
-        return to_send
-
-    def request_complex_list(self):
-        to_send = self.serialize_message(_Messages.complex_list_request, None)
-        self._rpc_request('request_complex_list', to_send=to_send)
-
-
-class RedisNetwork:
-    
-    def _send(cls, code, arg, expects_response):
-        pass
-
-
-class RedisPluginInstance(PluginInstance):
-
-    _network = RedisNetwork()
