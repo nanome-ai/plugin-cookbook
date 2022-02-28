@@ -12,6 +12,7 @@ import nanome
 from nanome.util import async_callback, Logs
 from nanome.util.enums import NotificationTypes
 from nanome._internal._util._serializers import _TypeSerializer
+from nanome._internal._network import _Packet
 
 BASE_PATH = os.path.dirname(f'{os.path.realpath(__file__)}')
 MENU_PATH = os.path.join(BASE_PATH, 'default_menu.json')
@@ -44,6 +45,21 @@ class PluginService(nanome.AsyncPluginInstance):
         self.open_url(url)
         await self.poll_redis_for_requests(self.redis_channel)
 
+    def send(self, to_send):
+        network = self._network
+        command_id = network._command_id
+        packet = _Packet()
+        packet.set(network._session_id, _Packet.packet_type_message_to_client, network._plugin_id)
+        packet.write(to_send)
+        # if code != 0: # Messages.connect
+        #     packet.compress()
+        try:
+            network._queue_net_out.put(packet)
+        except BrokenPipeError:
+            pass  # Ignore, as it will be closed later on, during _receive
+        network._command_id = (command_id + 1) % 4294967295  # Cap by uint max
+        return command_id
+
     @async_callback
     async def poll_redis_for_requests(self, redis_channel):
         """Start a non-halting loop polling for and processing Plugin Requests.
@@ -65,26 +81,34 @@ class PluginService(nanome.AsyncPluginInstance):
                     self.send_notification(NotificationTypes.error, error_message)
 
                 Logs.message(f"Received Request: {data.get('function')}")
-                fn_name = data['function']
-                args = self.unpickle_data(data['args'])
-                kwargs = self.unpickle_data(data['kwargs'])
-                response_channel = data['response_channel']
+                if 'to_send' in data:
+                    to_send = str.encode(data['to_send'])
+                    command_id = self.send(to_send)
+                    print('here')
+                    import asyncio
+                    await asyncio.sleep(2)
+                else:
+                    fn_name = data['function']
+                    args = self.unpickle_data(data['args'])
+                    kwargs = self.unpickle_data(data['kwargs'])
+                    response_channel = data['response_channel']
 
-                function_to_call = getattr(self, fn_name)
-                try:
-                    response = await function_to_call(*args, **kwargs)
-                except (TypeError, RuntimeError) as e:
-                    # TypeError Happens when you await a non-sync function.
-                    # Because nanome-lib doesn't define functions using `async def`,
-                    # I can't find a reliable way to determine whether we need to await asyncs.
-                    # For now, just recall the function without async.
-                    response = function_to_call(*args, **kwargs)
-                except struct.error:
-                    Logs.error(f"Serialization error on {fn_name} call")
+                    function_to_call = getattr(self, fn_name)
+                    try:
+                        response = await function_to_call(*args, **kwargs)
+                    except (TypeError, RuntimeError) as e:
+                        # TypeError Happens when you await a non-sync function.
+                        # Because nanome-lib doesn't define functions using `async def`,
+                        # I can't find a reliable way to determine whether we need to await asyncs.
+                        # For now, just recall the function without async.
+                        response = function_to_call(*args, **kwargs)
+                    except struct.error:
+                        Logs.error(f"Serialization error on {fn_name} call")
                 Logs.message(response)
                 pickled_response = self.pickle_data(response)
                 Logs.message(f'Publishing Response to {response_channel}')
                 rds.publish(response_channel, pickled_response)
+                response = None  # reset response
 
     @staticmethod
     def pickle_data(data):

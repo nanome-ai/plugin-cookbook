@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "run.py",
-            "args": ["-n", "[wip]-browser", "-v", "-r"],
+            "args": ["-n", "[wip]-browser", "-v"],
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env",
             "python": "/opt/conda/bin/python",
