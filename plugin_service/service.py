@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import dill
 import io
@@ -52,6 +53,7 @@ class PluginService(nanome.AsyncPluginInstance):
         #     packet.compress()
         try:
             network._queue_net_out.put(packet)
+            asyncio.wait_for(network._queue_net_out.join(), timeout=1)
         except BrokenPipeError:
             pass  # Ignore, as it will be closed later on, during _receive
         network._command_id = (command_id + 1) % 4294967295  # Cap by uint max
