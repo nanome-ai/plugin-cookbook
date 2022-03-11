@@ -31,7 +31,7 @@ class WebsocketPlugin(nanome.AsyncPluginInstance):
     @async_callback
     async def start(self):
         self.websocket_url =  WEBSOCKET_SERVER
-        self.session_id = ''.join(random.choices(string.ascii_lowercase, k=4))
+        self.session_id = os.environ.get("REDIS_CHANNEL")  # TODO: rename
 
         await self.ws_connect()
         self.on_run()

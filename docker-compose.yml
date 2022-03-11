@@ -40,6 +40,7 @@ services:
       context: ./cookbook
       dockerfile: ./Dockerfile
     environment:
+      - WEBSOCKET_SERVER=ws://websocket_server
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - JUPYTER_ENABLE_LAB=yes
