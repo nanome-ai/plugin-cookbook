@@ -1,12 +1,17 @@
+import asyncio
 import base64
 import dill
 import io
 import json
 import os
+import random
 import redis
+import string
 import struct
 import sys
 import uuid
+import websockets
+import tempfile
 
 import nanome
 from nanome.util import async_callback, Logs
@@ -16,10 +21,67 @@ from nanome._internal._util._serializers import _TypeSerializer
 BASE_PATH = os.path.dirname(f'{os.path.realpath(__file__)}')
 MENU_PATH = os.path.join(BASE_PATH, 'default_menu.json')
 
+WEBSOCKET_SERVER = os.environ.get('WEBSOCKET_SERVER')
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
+
+class WebsocketPlugin(nanome.AsyncPluginInstance):
+    @async_callback
+    async def start(self):
+        self.websocket_url =  WEBSOCKET_SERVER
+        self.session_id = ''.join(random.choices(string.ascii_lowercase, k=4))
+
+        await self.ws_connect()
+        self.on_run()
+        self.ws_loop()
+    
+    @async_callback
+    async def on_run(self):
+        default_url = os.environ.get('DEFAULT_URL')
+        jupyter_token = os.environ.get('JUPYTER_TOKEN')
+        url = f'{default_url}?token={jupyter_token}'
+        print(f'Opening {url}')
+        self.open_url(url)
+
+    async def ws_connect(self):
+        Logs.debug(f'connecting to {self.websocket_url}')
+
+        while True:
+            try:
+                self.ws = await websockets.connect(self.websocket_url)
+                break
+            except:
+                await asyncio.sleep(1)
+
+        Logs.debug(f'connected to {self.websocket_url}')
+        await self.ws_send('host', self.session_id)
+
+    async def ws_send(self, type, data):
+        msg = json.dumps({'type': type, 'data': data})
+        await self.ws.send(msg)
+
+    @async_callback
+    async def ws_loop(self):
+        while True:
+            try:
+                m = await asyncio.wait_for(self.ws.recv(), timeout=0.1)
+            except asyncio.TimeoutError:
+                continue
+            except websockets.exceptions.ConnectionClosedError:
+                await self.ws_connect()
+                continue
+
+            msg = json.loads(m)
+            type = msg.get('type')
+            data = msg.get('data')
+
+            Logs.debug('recv', type, data)
+
+            # TODO: handle different message
+
+            Logs.debug('done', type)
 
 class PluginService(nanome.AsyncPluginInstance):
 

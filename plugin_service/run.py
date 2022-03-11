@@ -1,7 +1,7 @@
 import os
 import nanome
 
-from service import PluginService
+from service import PluginService, WebsocketPlugin
 from nanome.api import Plugin
 
 
@@ -17,7 +17,7 @@ def main():
     tags = ['Interactions']
 
     plugin = nanome.Plugin(plugin_name, description, tags)
-    plugin.set_plugin_class(PluginService)
+    plugin.set_plugin_class(WebsocketPlugin)
 
     # CLI Args take priority over environment variables for NTS settnigs
     host = args.host or os.environ.get('NTS_HOST')

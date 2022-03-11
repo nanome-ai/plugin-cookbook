@@ -1,0 +1,18 @@
+{
+  "name": "websocket_service",
+  "version": "1.0.0",
+  "description": "A websocket server for plugins",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.3",
+    "helmet": "^5.0.2",
+    "morgan": "^1.10.0",
+    "ws": "^8.5.0"
+  }
+}

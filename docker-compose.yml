@@ -2,12 +2,22 @@ version: '3'
 services:
   redis:
     image: redis
+
+  websocket_server:
+    build:
+      context: ./websocket_service
+      dockerfile: Dockerfile
+    ports:
+      - 8000:80
+    restart: unless-stopped
+
   plugin_service:
     build:
       context: ./plugin_service
       dockerfile: ./Dockerfile
     tty: true
     environment:
+      - WEBSOCKET_SERVER=ws://websocket_server
       - DEFAULT_URL=http://127.0.0.1:8888
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
