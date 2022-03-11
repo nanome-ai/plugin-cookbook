@@ -14,10 +14,7 @@ const broadcast = (ws, type, data, toPlugin = null) => {
     ? 'send_clients'
     : 'broadcast'
 
-  if (type !== 'image') {
-    const debug = type === 'data' ? '---' : data
-    console.log(ws.session, logType, type, debug)
-  }
+  console.log(ws.session, logType, type, data)
 
   server.clients.forEach(client => {
     if (client === ws) return
@@ -68,8 +65,7 @@ const onMessage = ws => e => {
       }
       break
     default:
-      send(ws, 'error', `Unknown command "${type}"`)
-      ws.close()
+      broadcast(ws, type, data)
   }
 }
 

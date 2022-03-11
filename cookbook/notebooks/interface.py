@@ -5,10 +5,10 @@ import uuid
 import base64
 import dill
 import io
+import websocket
 from nanome import PluginInstance
 from nanome._internal._network._serialization._serializer import Serializer
 from nanome.util import Logs
-
 
 def pickle_data(data):
     """Return the stringified bytes of pickled data."""
@@ -288,3 +288,58 @@ class PluginInstanceRedisInterface:
         function_name = 'get_plugin_data'
         response = self._rpc_request(function_name)
         return response
+
+
+class PluginInstanceWebsocketInterface:
+    
+    def __init__(self, websocket_url, session_id):
+        self.websocket_url = websocket_url
+        self.websocket = None
+        self.websocket_connected = False
+        self.session_id = session_id
+    
+    def ws_connect(self):
+        Logs.debug(f'connecting to {self.websocket_url}')
+
+        self.ws = websocket.WebSocket()
+        self.ws.connect(self.websocket_url)
+        
+        Logs.debug(f'connected to {self.websocket_url}')
+        self.ws_send('join', self.session_id)
+
+    def ws_send(self, type, data):
+        message = json.dumps({'type': type, 'data': data})
+        self.ws.send(message)
+
+    def __getattr__(self, name):
+        """Override superclass getattr to provide a proxy for the PluginInstance class.
+
+        If a user calls an attribute on the Interface that exists on the PluginInstance,
+        return a proxy call to Redis.
+        """
+        plugin_instance_api = iter(attr for attr in dir(PluginInstance) if not attr.startswith('_'))
+        interface_override = iter(attr for attr in dir(self) if not attr.startswith('_'))
+        # Only intercept if the property is a public property of a PluginInstance,
+        # and theres no override on this class.
+        if name in plugin_instance_api and name not in interface_override:
+            def proxy_ws_message(*args, **kwargs):
+                message = self.create_plugin_message(name, args, kwargs)
+                self.ws_send('function_call', message)
+                response = self.ws.recv()
+                response_data = self.unpickle_message(response)
+                return response_data
+            return proxy_ws_message
+        return getattr(self, name)
+    
+    def create_plugin_message(self, function_name, args=None, kwargs=None,):
+        args = args or []
+        kwargs = kwargs or {}
+        # Set random channel name for responsz
+        message = json.dumps({
+            'function': function_name,
+            'args': args,
+            'kwargs': kwargs,
+            'args': pickle_data(args),
+            'kwargs': pickle_data(kwargs),
+        })
+        return message
