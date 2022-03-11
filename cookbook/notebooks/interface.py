@@ -128,6 +128,7 @@ class RedisNetwork:
             if message.get('type') == 'message':
                 response_channel = next(iter(pubsub.channels.keys())).decode('utf-8')
                 Logs.message(f"Response received on channel {response_channel}")
+                breakpoint()
                 response_data = self.unpickle_message(message)
                 pubsub.unsubscribe()
                 return response_data
@@ -326,8 +327,9 @@ class PluginInstanceWebsocketInterface:
                 message = self.create_plugin_message(name, args, kwargs)
                 self.ws_send('function_call', message)
                 response = self.ws.recv()
-                response_data = self.unpickle_message(response)
-                return response_data
+                response_data = json.loads(response).get('data')
+                response_data_unpickled = unpickle_data(response_data)
+                return response_data_unpickled
             return proxy_ws_message
         return getattr(self, name)
     
