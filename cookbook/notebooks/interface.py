@@ -291,7 +291,7 @@ class PluginInstanceRedisInterface:
         return response
 
 
-class PluginInstanceWebsocketInterface:
+class WebsocketPluginInstance:
     
     def __init__(self, websocket_url, session_id):
         self.websocket_url = websocket_url
