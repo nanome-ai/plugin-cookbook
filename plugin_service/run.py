@@ -1,7 +1,7 @@
 import os
 import nanome
 
-from service import PluginService, WebsocketPlugin
+from service import WebsocketPlugin
 from nanome.api import Plugin
 
 

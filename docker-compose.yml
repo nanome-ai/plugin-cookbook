@@ -1,8 +1,5 @@
 version: '3'
 services:
-  redis:
-    image: redis
-
   websocket_server:
     build:
       context: ./websocket_service
@@ -29,8 +26,6 @@ services:
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
 
-    depends_on:
-      - redis
     volumes:
       - ./plugin_service:/app
     command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
@@ -55,8 +50,6 @@ services:
       - ./plugin_service/service.py:/app/notebooks/service.py
     tty: true
     stdin_open: true
-    depends_on:
-      - redis
   # Uncomment to use Neo4j integration notebook. 
   # neo4j:
   #   image: neo4j
