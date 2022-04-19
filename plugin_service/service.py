@@ -92,25 +92,48 @@ class WebsocketPlugin(nanome.AsyncPluginInstance):
                 response = await self.handle_fn_call(message_data)
             elif message_type == MESSAGE_TYPES.SERIALIZED_MESSAGE:
                 to_send = str.encode(message_data)
-                response = self.send_to_nts(to_send)
-            error_message = 'JSON Decode Failure'
-            self.send_notification(NotificationTypes.error, error_message)
+                command_id = await self.send_to_nts(to_send)
+                # TODO: How do I use command ID to get results?
+                print(command_id)
 
+            response = await asyncio.wait_for(self.receive_response(), 5)
             if response:
                 await self.ws_send('function_response', response)
     
-    def send_to_nts(self, to_send):
+    async def receive_response(self):
+        payload = None
+        while True:
+            try:
+                has_data = not self._network._queue_net_in.empty()
+                if has_data:
+                    payload = self._network._queue_net_in.get()
+                    break
+            except BrokenPipeError:
+                Logs.debug("Pipe has been closed, exiting process")
+                return False
+        if payload:
+            received_object, command_hash, request_id = self._serializer.deserialize_command(payload, self.__version_table)
+            if received_object == None and command_hash == None and request_id == None:
+                return True  # Happens if deserialize_command returns None, an error message is already displayed in that case
+
+            try:
+                callback = self._serializer._command_callbacks[command_hash]
+            except:
+                Logs.error("Received a command without callback associated:", command_hash)
+                return True
+            callback(self, received_object, request_id)
+        return True
+
+
+    async def send_to_nts(self, to_send):
         to_send = to_send
         network = self._network
         command_id = network._command_id
         packet = _Packet()
         packet.set(network._session_id, _Packet.packet_type_message_to_client, network._plugin_id)
         packet.write(to_send)
-        # if code != 0: # Messages.connect
-        #     packet.compress()
         try:
             network._queue_net_out.put(packet)
-            asyncio.wait_for(network._queue_net_out.join(), timeout=1)
         except BrokenPipeError:
             pass  # Ignore, as it will be closed later on, during _receive
         network._command_id = (command_id + 1) % 4294967295  # Cap by uint max

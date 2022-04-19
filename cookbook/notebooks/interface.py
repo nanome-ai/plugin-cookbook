@@ -23,8 +23,7 @@ class WebsocketNetwork:
     def _send(self, code, arg, expects_response):
         version_table = self.plugin_data['version_table']
         to_send = self.serializer.serialize_message(self._command_id, code, arg, version_table, expects_response)
-        breakpoint()
-        to_send = to_send.tobytes().decode()
+        to_send = to_send.tobytes().decode('utf-8')
         self.ws_send('serialized_message', to_send)
         self._command_id += 1
         if expects_response:

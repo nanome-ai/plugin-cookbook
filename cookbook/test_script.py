@@ -1,6 +1,5 @@
 from notebooks.interface import WebsocketPluginInstance
 import os
-
 websocket_url = os.environ.get('WEBSOCKET_SERVER')
 session_id = os.environ.get('REDIS_CHANNEL')
 print(f'session id {session_id}')
