@@ -7,7 +7,8 @@ import dill
 import io
 from nanome import PluginInstance
 from nanome.util import Logs
-
+from nanome.api import structure
+import schemas
 
 def pickle_data(data):
     """Return the stringified bytes of pickled data."""
@@ -92,22 +93,27 @@ class PluginInstanceRedisInterface:
             response = (stream_interface, error)
         return response
 
-    def _rpc_request(self, function_name, args=None, kwargs=None):
+    def _rpc_request(self, function_name, fn_args=None, fn_kwargs=None):
         """Publish an RPC request to redis, and await response.
 
         :rtype: data returned by PluginInstance function called by RPC.
         """
-        args = args or []
-        kwargs = kwargs or {}
+        fn_args = fn_args or []
+        fn_kwargs = fn_kwargs or {}
+
+        fn_arg_schemas = schemas.function_arg_schemas[function_name]
+        serialized_args = []
+        serialized_kwargs = {}
+        for arg_obj, arg_schema in zip(fn_args, fn_arg_schemas):
+            ser_arg = arg_schema.dump(arg_obj)
+            serialized_args.append(ser_arg)
 
         # Set random channel name for response
         response_channel = str(uuid.uuid4())
         message = json.dumps({
             'function': function_name,
-            'args': args,
-            'kwargs': kwargs,
-            'args': pickle_data(args),
-            'kwargs': pickle_data(kwargs),
+            'args': serialized_args,
+            'kwargs': serialized_kwargs,
             'response_channel': response_channel
         })
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
