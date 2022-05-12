@@ -1,32 +1,13 @@
 import json
 import redis
-import time
 import uuid
-import base64
-import dill
-import io
+
 from nanome import PluginInstance
 from nanome.util import Logs
 from nanome.api import structure
-import schemas
 from marshmallow import Schema, fields
 
-def pickle_data(data):
-    """Return the stringified bytes of pickled data."""
-    bytes_output = io.BytesIO()
-    dill.dump(data, bytes_output)
-    bytes_output_base64 = base64.b64encode(bytes_output.getvalue()).decode()
-    bytes_output.close()
-    return bytes_output_base64
-
-
-def unpickle_data(pickled_data):
-    """Unpickle data into its original python version."""
-    pickle_bytes = io.BytesIO(base64.b64decode(pickled_data))
-    unpickled_data = dill.loads(pickle_bytes.read())
-    pickle_bytes.close()
-    return unpickled_data
-
+from nanome import schemas
 
 class StreamRedisInterface:
     """Gets wrapped around a stream object on creation, and is used to send data to the stream through redis.
@@ -37,6 +18,7 @@ class StreamRedisInterface:
 
     def __init__(self, stream_data, plugin_interface):
         self.stream_id = stream_data['stream_id']
+        self.error = stream_data['error']
         self._plugin_interface = plugin_interface
 
 
@@ -88,24 +70,24 @@ class PluginInstanceRedisInterface:
         """Return a stream wrapped in the RedisStreamInterface"""
         function_name = 'create_writing_stream'
         args = [atom_indices, stream_type]
-        stream, error = self._rpc_request(function_name, args=args)
+        stream = self._rpc_request(function_name, args=args)
         if stream:
             stream_interface = StreamRedisInterface(stream, self)
-            response = (stream_interface, error)
+            response = stream_interface
         return response
 
-    def _rpc_request(self, function_name, fn_args=None, fn_kwargs=None):
+    def _rpc_request(self, function_name, args=None, kwargs=None):
         """Publish an RPC request to redis, and await response.
 
         :rtype: data returned by PluginInstance function called by RPC.
         """
-        fn_args = fn_args or []
-        fn_kwargs = fn_kwargs or {}
+        args = args or []
+        kwargs = kwargs or {}
 
         fn_arg_schemas = schemas.function_arg_schemas[function_name]
         serialized_args = []
         serialized_kwargs = {}
-        for arg_obj, arg_schema in zip(fn_args, fn_arg_schemas['params']):
+        for arg_obj, arg_schema in zip(args, fn_arg_schemas['params']):
             if isinstance(arg_schema, schemas.Schema):
                 ser_arg = arg_schema.dump(arg_obj)
             elif isinstance(arg_schema, fields.Field):
@@ -140,13 +122,6 @@ class PluginInstanceRedisInterface:
                     deserialized_response = None
                 return deserialized_response
 
-    @staticmethod
-    def unpickle_message(message):
-        """Unpickle data from Redis message, and return contents."""
-        pickled_data = message['data']
-        response_data = unpickle_data(pickled_data)
-        return response_data
-
     def upload_shapes(self, shape_list):
         """Upload a list of shapes to the server.
 
@@ -159,11 +134,6 @@ class PluginInstanceRedisInterface:
         return response
 
     def get_plugin_data(self):
-        """Upload a list of shapes to the server.
-
-        :arg: shape_list: List of shapes to upload.
-        :rtype: list. List of shape IDs.
-        """
         function_name = 'get_plugin_data'
         response = self._rpc_request(function_name)
         return response

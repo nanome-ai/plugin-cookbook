@@ -39,7 +39,7 @@ class PluginService(nanome.AsyncPluginInstance):
         default_url = os.environ.get('DEFAULT_URL')
         jupyter_token = os.environ.get('JUPYTER_TOKEN')
         url = f'{default_url}?token={jupyter_token}'
-        print(f'Opening {url}')
+        Logs.message(f'Opening {url}')
         self.open_url(url)
         await self.poll_redis_for_requests(self.redis_channel)
 
@@ -110,14 +110,11 @@ class PluginService(nanome.AsyncPluginInstance):
                 serialized_response = {}
                 if output_schema:
                     if isinstance(output_schema, Schema):
-                        print(f"RESPONSE={response}")
-                        print(f"SCHEMA={output_schema}")
                         serialized_response = output_schema.dump(response)
                     elif isinstance(output_schema, fields.Field):
                         # Field that does not need to be deserialized
                         serialized_response = output_schema.serialize(response)
                 json_response = json.dumps(serialized_response)
-                print(f"SENDING RESPONSE={type(json_response)}")
                 response_channel = data['response_channel']
                 Logs.message(f'Publishing Response to {response_channel}')
                 rds.publish(response_channel, json_response)
@@ -146,9 +143,8 @@ class PluginService(nanome.AsyncPluginInstance):
         if stream:
             self.streams.append(stream)
 
-        stream_data = {"stream_id": stream._Stream__id}
-        output = (stream_data, error)
-        return output
+        stream_data = {"stream_id": stream._Stream__id, 'error': error}
+        return stream_data
 
     def stream_update(self, stream_id, stream_data):
         """Function to update stream."""
@@ -164,11 +160,11 @@ class PluginService(nanome.AsyncPluginInstance):
 
     async def upload_shapes(self, shape_list):
         for shape in shape_list:
-            print(shape.index)
+            Logs.message(shape.index)
         response = await nanome.api.shapes.Shape.upload_multiple(shape_list)
         self.shapes.extend(response)
         for shape in shape_list:
-            print(shape.index)
+            Logs.message(shape.index)
         return shape_list
 
     def get_plugin_data(self):

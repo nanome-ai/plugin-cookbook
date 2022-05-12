@@ -7,6 +7,9 @@ from nanome.util import Vector3, Quaternion
 
 logging = logging.getLogger(__name__)
 
+class StreamSchema(Schema):
+    stream_id = fields.Integer(required=True)
+    error = fields.Integer()
 
 class QuaternionField(fields.Field):
 
@@ -225,5 +228,13 @@ function_arg_schemas = {
     'request_complex_list': {
         'params': [fields.List(fields.Integer)],
         'output': ComplexSchema(many=True)
+    },
+    'create_writing_stream': {
+        'params': [fields.List(fields.Integer), fields.Integer()],
+        'output': StreamSchema()
+    },
+    'stream_update': {
+        'params': [fields.Integer(), fields.List(fields.Integer)],
+        'output': None
     }
 }
