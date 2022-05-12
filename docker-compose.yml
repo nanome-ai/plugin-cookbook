@@ -23,7 +23,7 @@ services:
       - redis
     volumes:
       - ./plugin_service:/app
-      - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.7/site-packages/nanome
+      # - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.7/site-packages/nanome
     command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
   
   cookbook:
@@ -40,7 +40,7 @@ services:
       - 8888:8888
     volumes:
       - ./cookbook:/app
-      - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.9/site-packages/nanome
+      # - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.9/site-packages/nanome
 
     tty: true
     stdin_open: true

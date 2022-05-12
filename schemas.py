@@ -44,8 +44,8 @@ class AtomSchema(Schema):
     polar_hydrogen = fields.Boolean()
     atom_mode = fields.Integer()  # Enum, see nanome.util.enums.AtomRenderingMode
     serial = fields.Integer()
-    current_conformer = fields.Integer()
-    conformer_count = fields.Integer()
+    current_conformer = fields.Integer(load_only=True)
+    conformer_count = fields.Integer(load_only=True)
     positions = fields.List(Vector3Field())
     label_text = fields.String()
     atom_color = fields.String()
@@ -56,7 +56,7 @@ class AtomSchema(Schema):
     position = Vector3Field()
     formal_charge = fields.Float()
     partial_charge = fields.Float()
-    vdw_radius = fields.Float()
+    vdw_radius = fields.Float(load_only=True)
     alt_loc = fields.Str(max=1)
 
     @post_load
@@ -78,14 +78,6 @@ class BondSchema(Schema):
     @post_load
     def make_bond(self, data, **kwargs):
         new_obj = structure.Bond()
-        # Manually create atom objects with provided atoms set
-        # atom1 = structure.Atom()
-        # atom1.index = data.pop('atom1')
-        # atom2 = structure.Atom()
-        # atom2.index = data.pop('atom2')
-        # new_obj.atom1 = atom1
-        # new_obj.atom2 = atom2
-
         for key in data:
             try:
                 setattr(new_obj, key, data[key])
@@ -147,7 +139,7 @@ class MoleculeSchema(Schema):
     chains = fields.List(fields.Nested(ChainSchema))
     name = fields.Str()
     associated = fields.List(fields.Str())
-    conformer_count = fields.Integer()
+    conformer_count = fields.Integer(load_only=True)
     current_conformer = fields.Integer()
 
     @post_load
