@@ -11,6 +11,8 @@ import nanome
 from nanome.util import async_callback, Logs
 from nanome.util.enums import NotificationTypes
 from nanome._internal._util._serializers import _TypeSerializer
+from marshmallow import Schema, fields
+
 import schemas
 
 BASE_PATH = os.path.dirname(f'{os.path.realpath(__file__)}')
@@ -80,8 +82,13 @@ class PluginService(nanome.AsyncPluginInstance):
                 fn_args = []
                 fn_kwargs = {}
                 
-                for ser_arg, schema in zip(serialized_args, fn_arg_schemas):
-                    arg = schema.load(ser_arg)
+                # Deserialize args and kwargs into python classes
+                for ser_arg, schema_or_field in zip(serialized_args, fn_arg_schemas['params']):
+                    if isinstance(schema_or_field, Schema):
+                        arg = schema_or_field.load(ser_arg)
+                    elif isinstance(schema_or_field, fields.Field):
+                        # Field that does not need to be deserialized
+                        arg = schema_or_field.deserialize(ser_arg)
                     fn_args.append(arg)
                 response_channel = data['response_channel']
 
@@ -97,9 +104,23 @@ class PluginService(nanome.AsyncPluginInstance):
                 except struct.error:
                     Logs.error(f"Serialization error on {fn_name} call")
                 Logs.message(response)
-                pickled_response = self.pickle_data(response)
+
+                # Serialize response before sending back to client
+                output_schema = fn_arg_schemas['output']
+                serialized_response = {}
+                if output_schema:
+                    if isinstance(output_schema, Schema):
+                        print(f"RESPONSE={response}")
+                        print(f"SCHEMA={output_schema}")
+                        serialized_response = output_schema.dump(response)
+                    elif isinstance(output_schema, fields.Field):
+                        # Field that does not need to be deserialized
+                        serialized_response = output_schema.serialize(response)
+                json_response = json.dumps(serialized_response)
+                print(f"SENDING RESPONSE={type(json_response)}")
+                response_channel = data['response_channel']
                 Logs.message(f'Publishing Response to {response_channel}')
-                rds.publish(response_channel, pickled_response)
+                rds.publish(response_channel, json_response)
 
     @staticmethod
     def pickle_data(data):

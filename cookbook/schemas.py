@@ -1,10 +1,9 @@
 import itertools
 import logging
-
 from marshmallow import Schema, fields, post_load, ValidationError
-
 from nanome.api import structure
 from nanome.util import Vector3, Quaternion
+
 
 logging = logging.getLogger(__name__)
 
@@ -22,15 +21,12 @@ class QuaternionField(fields.Field):
 
 class Vector3Field(fields.Field):
 
-    def _serialize(self, value: Vector3, attr, obj, **kwargs):
-        return value.unpack()
+    def _serialize(self, value, attr, obj, **kwargs):
+        output = list(value.unpack())
+        return output
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if len(value) != 3:
-            raise ValidationError("Vector3 must contain 3 values")
         return Vector3(*value)
-
-
 
 
 class AtomSchema(Schema):
@@ -46,12 +42,11 @@ class AtomSchema(Schema):
     acceptor = fields.Boolean()
     donor = fields.Boolean()
     polar_hydrogen = fields.Boolean()
-    in_conformer = fields.Boolean()
     atom_mode = fields.Integer()  # Enum, see nanome.util.enums.AtomRenderingMode
     serial = fields.Integer()
     current_conformer = fields.Integer()
     conformer_count = fields.Integer()
-    positions = fields.Integer()
+    positions = fields.List(Vector3Field())
     label_text = fields.String()
     atom_color = fields.String()
     atom_scale = fields.Float()
@@ -74,23 +69,22 @@ class AtomSchema(Schema):
                 raise AttributeError('Could not set attribute {}'.format(key))
         return new_obj
 
-
 class BondSchema(Schema):
     index = fields.Integer(required=True)
-    atom1 = fields.Integer()
-    atom2 = fields.Integer()
+    atom1 = AtomSchema(only=('index',))
+    atom2 = AtomSchema(only=('index',))
     kind = fields.Integer()  # Enum, see nanome.util.enums.Kind
 
     @post_load
     def make_bond(self, data, **kwargs):
         new_obj = structure.Bond()
         # Manually create atom objects with provided atoms set
-        atom1 = structure.Atom()
-        atom1.index = data.pop('atom1')
-        atom2 = structure.Atom()
-        atom2.index = data.pop('atom2')
-        new_obj.atom1 = atom1
-        new_obj.atom2 = atom2
+        # atom1 = structure.Atom()
+        # atom1.index = data.pop('atom1')
+        # atom2 = structure.Atom()
+        # atom2.index = data.pop('atom2')
+        # new_obj.atom1 = atom1
+        # new_obj.atom2 = atom2
 
         for key in data:
             try:
@@ -171,7 +165,6 @@ class MoleculeSchema(Schema):
 
 class ComplexSchema(Schema):
     index = fields.Integer(required=True)
-    current_frame = fields.Integer()
     boxed = fields.Boolean()
     locked = fields.Boolean()
     visible = fields.Boolean()
@@ -225,6 +218,20 @@ structure_schema_map = {
 }
 
 function_arg_schemas = {
-    'update_structures_shallow': [ComplexSchema(many=True)],
-    'request_complex_list': []
+    'request_workspace':{
+        'params': [],
+        'output': WorkspaceSchema()
+    },
+    'request_complexes': {
+        'params': [fields.List(fields.Integer)],
+        'output': ComplexSchema(many=True)
+    },
+    'update_structures_shallow': {
+        'params': [ComplexSchema(many=True)],
+        'output': None
+    }, 
+    'request_complex_list': {
+        'params': [fields.List(fields.Integer)],
+        'output': ComplexSchema(many=True)
+    }
 }

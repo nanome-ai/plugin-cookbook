@@ -9,6 +9,7 @@ from nanome import PluginInstance
 from nanome.util import Logs
 from nanome.api import structure
 import schemas
+from marshmallow import Schema, fields
 
 def pickle_data(data):
     """Return the stringified bytes of pickled data."""
@@ -104,8 +105,11 @@ class PluginInstanceRedisInterface:
         fn_arg_schemas = schemas.function_arg_schemas[function_name]
         serialized_args = []
         serialized_kwargs = {}
-        for arg_obj, arg_schema in zip(fn_args, fn_arg_schemas):
-            ser_arg = arg_schema.dump(arg_obj)
+        for arg_obj, arg_schema in zip(fn_args, fn_arg_schemas['params']):
+            if isinstance(arg_schema, schemas.Schema):
+                ser_arg = arg_schema.dump(arg_obj)
+            elif isinstance(arg_schema, fields.Field):
+                ser_arg = arg_schema.deserialize(arg_obj)
             serialized_args.append(ser_arg)
 
         # Set random channel name for response
@@ -122,19 +126,19 @@ class PluginInstanceRedisInterface:
         pubsub.subscribe(response_channel)
         self.redis.publish(self.channel, message)
 
-        timeout = time.time() + 60
         for message in pubsub.listen():
-
-            if time.time() > timeout:
-                pubsub.unsubscribe()
-                raise Exception("Timeout error")
-
             if message.get('type') == 'message':
                 response_channel = next(iter(pubsub.channels.keys())).decode('utf-8')
                 Logs.message(f"Response received on channel {response_channel}")
-                response_data = self.unpickle_message(message)
+                message_data_str = message['data'].decode('utf-8')
+                response_data = json.loads(message_data_str)
                 pubsub.unsubscribe()
-                return response_data
+                output_schema = schemas.function_arg_schemas[function_name]['output']
+                if output_schema:
+                    deserialized_response = output_schema.load(response_data)
+                else:
+                    deserialized_response = None
+                return deserialized_response
 
     @staticmethod
     def unpickle_message(message):
