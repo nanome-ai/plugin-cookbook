@@ -56,13 +56,13 @@ class AtomSchema(StructureSchema):
     conformer_count = fields.Integer(load_only=True)
     positions = fields.List(Vector3Field())
     label_text = fields.String()
-    atom_color = fields.String()
+    # atom_color = fields.String()
     atom_scale = fields.Float()
-    surface_color = fields.Str()  # Hex color
+    # surface_color = fields.Str()  # Hex color
     symbol = fields.Str()
     name = fields.Str()
     position = Vector3Field()
-    formal_charge = fields.Float()
+    formal_charge = fields.Integer()
     partial_charge = fields.Float()
     vdw_radius = fields.Float(load_only=True)
     alt_loc = fields.Str(max=1)
@@ -99,13 +99,13 @@ class ResidueSchema(StructureSchema):
     ribboned = fields.Boolean()
     ribbon_size = fields.Float()
     ribbon_mode = fields.Integer()  # Enum, see nanome.util.enums.RibbonMode
-    ribbon_color = fields.Str() # hex code
+    # ribbon_color = fields.Str() # hex code
     labeled = fields.Boolean()
     label_text = fields.Str()
     type = fields.Str()
     serial = fields.Integer()
     name = fields.Str()
-    secondary_structure = fields.Integer() # Enum, see nanome.util.enums.SecondaryStructure
+    # secondary_structure = fields.Integer() # Enum, see nanome.util.enums.SecondaryStructure
     ignored_alt_locs = fields.List(fields.Str())
 
     @post_load
@@ -142,7 +142,7 @@ class ChainSchema(StructureSchema):
 class MoleculeSchema(StructureSchema):
     chains = fields.List(fields.Nested(ChainSchema))
     name = fields.Str()
-    associated = fields.List(fields.Str())
+    associated = fields.Dict()
     conformer_count = fields.Integer(load_only=True)
     current_conformer = fields.Integer()
 
@@ -248,7 +248,7 @@ class UpdateStructuresDeep:
 
 
 class UpdateWorkspace:
-    params = [WorkspaceSchema]
+    params = [WorkspaceSchema()]
     output = None
 
 
