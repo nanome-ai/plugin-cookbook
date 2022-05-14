@@ -212,29 +212,42 @@ structure_schema_map = {
     structure.Complex: ComplexSchema(),
 }
 
-function_arg_schemas = {
-    'request_workspace':{
-        'params': [],
-        'output': WorkspaceSchema()
-    },
-    'request_complexes': {
-        'params': [fields.List(fields.Integer)],
-        'output': ComplexSchema(many=True)
-    },
-    'update_structures_shallow': {
-        'params': [ComplexSchema(many=True)],
-        'output': None
-    }, 
-    'request_complex_list': {
-        'params': [fields.List(fields.Integer)],
-        'output': ComplexSchema(many=True)
-    },
-    'create_writing_stream': {
-        'params': [fields.List(fields.Integer), fields.Integer()],
-        'output': StreamSchema()
-    },
-    'stream_update': {
-        'params': [fields.Integer(), fields.List(fields.Integer)],
-        'output': None
-    }
+
+class RequestWorkspace:
+    params = []
+    output = WorkspaceSchema()
+
+
+class RequestComplexes:
+    params = [fields.List(fields.Integer)]
+    output = ComplexSchema(many=True)
+
+
+class RequestComplexList:
+    params = []
+    output = ComplexSchema(many=True)
+
+
+class UpdateStructuresShallow:
+    params = [ComplexSchema(many=True)]
+    output = None
+
+
+class CreateWritingStream:
+    params = [fields.List(fields.Integer), fields.Integer()]
+    output = StreamSchema()
+
+
+class StreamUpdate:
+    params = [fields.Integer(), fields.List(fields.Integer)],
+    output = None
+
+
+api_function_definitions = {
+    'request_workspace':RequestWorkspace(),
+    'request_complexes': RequestComplexes(),
+    'update_structures_shallow': UpdateStructuresShallow(),
+    'request_complex_list': RequestComplexList(),
+    'create_writing_stream': CreateWritingStream(),
+    'stream_update': StreamUpdate(),
 }

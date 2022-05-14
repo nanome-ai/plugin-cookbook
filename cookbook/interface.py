@@ -84,14 +84,16 @@ class PluginInstanceRedisInterface:
         args = args or []
         kwargs = kwargs or {}
 
-        fn_arg_schemas = schemas.function_arg_schemas[function_name]
+        fn_definition = schemas.api_function_definitions[function_name]
         serialized_args = []
         serialized_kwargs = {}
-        for arg_obj, arg_schema in zip(args, fn_arg_schemas['params']):
-            if isinstance(arg_schema, schemas.Schema):
-                ser_arg = arg_schema.dump(arg_obj)
-            elif isinstance(arg_schema, fields.Field):
-                ser_arg = arg_schema.deserialize(arg_obj)
+        for arg_obj, arg_definition in zip(args, fn_definition.params):
+            if isinstance(arg_definition, schemas.Schema):
+                ser_arg = arg_definition.dump(arg_obj)
+            elif isinstance(arg_definition, fields.Field):
+                # Create object with arg value as attribute, so we can validate.
+                temp_obj = type('TempObj', (object,), {'val': arg_obj})
+                ser_arg = arg_definition.serialize('val', temp_obj)
             serialized_args.append(ser_arg)
 
         # Set random channel name for response
@@ -115,7 +117,7 @@ class PluginInstanceRedisInterface:
                 message_data_str = message['data'].decode('utf-8')
                 response_data = json.loads(message_data_str)
                 pubsub.unsubscribe()
-                output_schema = schemas.function_arg_schemas[function_name]['output']
+                output_schema = fn_definition.output
                 if output_schema:
                     deserialized_response = output_schema.load(response_data)
                 else:

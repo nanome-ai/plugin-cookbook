@@ -78,12 +78,12 @@ class PluginService(nanome.AsyncPluginInstance):
                 fn_name = data['function']
                 serialized_args = data['args']
                 serialized_kwargs = data['kwargs']
-                fn_arg_schemas = schemas.function_arg_schemas[fn_name]
+                fn_definition = schemas.api_function_definitions[fn_name]
                 fn_args = []
                 fn_kwargs = {}
                 
                 # Deserialize args and kwargs into python classes
-                for ser_arg, schema_or_field in zip(serialized_args, fn_arg_schemas['params']):
+                for ser_arg, schema_or_field in zip(serialized_args, fn_definition.params):
                     if isinstance(schema_or_field, Schema):
                         arg = schema_or_field.load(ser_arg)
                     elif isinstance(schema_or_field, fields.Field):
@@ -106,7 +106,7 @@ class PluginService(nanome.AsyncPluginInstance):
                 Logs.message(response)
 
                 # Serialize response before sending back to client
-                output_schema = fn_arg_schemas['output']
+                output_schema = fn_definition.output
                 serialized_response = {}
                 if output_schema:
                     if isinstance(output_schema, Schema):
