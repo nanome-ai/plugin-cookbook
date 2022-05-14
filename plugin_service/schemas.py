@@ -7,9 +7,11 @@ from nanome.util import Vector3, Quaternion
 
 logging = logging.getLogger(__name__)
 
+
 class StreamSchema(Schema):
     stream_id = fields.Integer(required=True)
     error = fields.Integer()
+
 
 class QuaternionField(fields.Field):
 
@@ -32,8 +34,11 @@ class Vector3Field(fields.Field):
         return Vector3(*value)
 
 
-class AtomSchema(Schema):
-    index = fields.Integer(required=True)
+class StructureSchema(Schema):
+    index = fields.Integer(default=-1)
+
+
+class AtomSchema(StructureSchema):
     selected = fields.Boolean()
     labeled = fields.Boolean()
     atom_rendering = fields.Boolean()
@@ -72,8 +77,7 @@ class AtomSchema(Schema):
                 raise AttributeError('Could not set attribute {}'.format(key))
         return new_obj
 
-class BondSchema(Schema):
-    index = fields.Integer(required=True)
+class BondSchema(StructureSchema):
     atom1 = AtomSchema(only=('index',))
     atom2 = AtomSchema(only=('index',))
     kind = fields.Integer()  # Enum, see nanome.util.enums.Kind
@@ -89,8 +93,7 @@ class BondSchema(Schema):
         return new_obj
 
 
-class ResidueSchema(Schema):
-    index = fields.Integer(required=True)
+class ResidueSchema(StructureSchema):
     atoms = fields.List(fields.Nested(AtomSchema))
     bonds = fields.List(fields.Nested(BondSchema))
     ribboned = fields.Boolean()
@@ -119,8 +122,7 @@ class ResidueSchema(Schema):
         return new_obj
 
 
-class ChainSchema(Schema):
-    index = fields.Integer(required=True)
+class ChainSchema(StructureSchema):
     name = fields.Str()
     residues = fields.Nested(ResidueSchema, many=True)
 
@@ -137,8 +139,7 @@ class ChainSchema(Schema):
         return new_obj
 
 
-class MoleculeSchema(Schema):
-    index = fields.Integer(default=-1)
+class MoleculeSchema(StructureSchema):
     chains = fields.List(fields.Nested(ChainSchema))
     name = fields.Str()
     associated = fields.List(fields.Str())
@@ -158,8 +159,7 @@ class MoleculeSchema(Schema):
         return new_obj
 
 
-class ComplexSchema(Schema):
-    index = fields.Integer(required=True)
+class ComplexSchema(StructureSchema):
     boxed = fields.Boolean()
     locked = fields.Boolean()
     visible = fields.Boolean()
@@ -203,6 +203,15 @@ class WorkspaceSchema(Schema):
         return new_obj
 
 
+class PresenterInfoSchema(Schema):
+    account_id = fields.Integer()
+    account_name = fields.Str()
+    account_email = fields.Email()
+    has_org = fields.Bool()
+    org_id =fields.Integer()
+    org_name = fields.Str()
+
+
 structure_schema_map = {
     structure.Atom: AtomSchema(),
     structure.Bond: BondSchema(),
@@ -233,6 +242,46 @@ class UpdateStructuresShallow:
     output = None
 
 
+class UpdateStructuresDeep:
+    params = [ComplexSchema(many=True)]
+    output = None
+
+
+class UpdateWorkspace:
+    params = [WorkspaceSchema]
+    output = None
+
+
+class SendNotification:
+    params = [fields.Int(), fields.Str()]  # ~nanome.util.enums.NotificationTypes
+    output = None
+
+
+class ZoomOnStructures:
+    params = [StructureSchema(many=True)]
+    output = None
+
+
+class CenterOnStructures:
+    params = [StructureSchema(many=True)]
+    output = None
+
+
+class AddToWorkspace:
+    params = [ComplexSchema(many=True)]
+    output = None
+
+
+class AddBonds:
+    params = [ComplexSchema(many=True)]
+    output = None
+
+
+class OpenUrl:
+    params = [fields.Str()]
+    output = None
+
+
 class CreateWritingStream:
     params = [fields.List(fields.Integer), fields.Integer()]
     output = StreamSchema()
@@ -243,11 +292,34 @@ class StreamUpdate:
     output = None
 
 
+class RequestPresenterInfo:
+    params = []
+    output = PresenterInfoSchema()
+
+
+class RequestControllerTransforms:
+    params = []
+    output = [
+        Vector3Field(), QuaternionField(),
+        Vector3Field(), QuaternionField(),
+        Vector3Field(), QuaternionField()
+    ]
+
 api_function_definitions = {
     'request_workspace':RequestWorkspace(),
     'request_complexes': RequestComplexes(),
     'update_structures_shallow': UpdateStructuresShallow(),
+    'update_structures_deep': UpdateStructuresDeep(),
     'request_complex_list': RequestComplexList(),
     'create_writing_stream': CreateWritingStream(),
     'stream_update': StreamUpdate(),
+    'update_workspace': UpdateWorkspace(),
+    'zoom_on_structures': ZoomOnStructures(),
+    'send_notification': SendNotification(),
+    'center_on_structures': CenterOnStructures(),
+    'add_to_workspace': AddToWorkspace(),
+    'add_bonds': AddBonds(),
+    'open_url': OpenUrl(),
+    'request_presenter_info': RequestPresenterInfo(),
+    'request_controller_transforms': RequestControllerTransforms()
 }

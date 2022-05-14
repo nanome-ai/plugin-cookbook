@@ -9,6 +9,7 @@ from marshmallow import Schema, fields
 
 from nanome import schemas
 
+
 class StreamRedisInterface:
     """Gets wrapped around a stream object on creation, and is used to send data to the stream through redis.
 
