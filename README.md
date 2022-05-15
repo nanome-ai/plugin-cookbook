@@ -43,12 +43,6 @@ For now, the cookbook is expected to run on localhost, and you need access to th
 
 - Once the plugin has been started, in the Nanome app you should see "Cookbook" in your Stacks Menu. Select it, and press Activate/Run
 
-- The In-VR web browser should open to your jupyter notebook, with the JUPYTER_TOKEN as a query param.
-	- The url will be available in the plugin_service logs.
-	- you will also need to copy the Redis channel that the plugin instance is polling, and insert that into your cookbook.
-	```
-	Starting PluginService on Redis Channel 2a99a818-005e-4aba-a096-7b27a93c393b
-	```
 - In the notebooks that are Redis compatible (for example, notebooks/Pharmacaphore.ipynb), the first cell will have a variable `redis_channel`, which you set as the uuid from the log. This tells the notebook where your plugin_instance is expecting to receive function requests.
 
 
