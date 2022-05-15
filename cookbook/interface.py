@@ -1,29 +1,13 @@
 import json
 import redis
-import time
 import uuid
-import base64
-import dill
-import io
+
 from nanome import PluginInstance
 from nanome.util import Logs
+from nanome.api import structure
+from marshmallow import Schema, fields
 
-
-def pickle_data(data):
-    """Return the stringified bytes of pickled data."""
-    bytes_output = io.BytesIO()
-    dill.dump(data, bytes_output)
-    bytes_output_base64 = base64.b64encode(bytes_output.getvalue()).decode()
-    bytes_output.close()
-    return bytes_output_base64
-
-
-def unpickle_data(pickled_data):
-    """Unpickle data into its original python version."""
-    pickle_bytes = io.BytesIO(base64.b64decode(pickled_data))
-    unpickled_data = dill.loads(pickle_bytes.read())
-    pickle_bytes.close()
-    return unpickled_data
+from nanome import schemas
 
 
 class StreamRedisInterface:
@@ -35,6 +19,7 @@ class StreamRedisInterface:
 
     def __init__(self, stream_data, plugin_interface):
         self.stream_id = stream_data['stream_id']
+        self.error = stream_data['error']
         self._plugin_interface = plugin_interface
 
 
@@ -86,10 +71,10 @@ class PluginInstanceRedisInterface:
         """Return a stream wrapped in the RedisStreamInterface"""
         function_name = 'create_writing_stream'
         args = [atom_indices, stream_type]
-        stream, error = self._rpc_request(function_name, args=args)
+        stream = self._rpc_request(function_name, args=args)
         if stream:
             stream_interface = StreamRedisInterface(stream, self)
-            response = (stream_interface, error)
+            response = stream_interface
         return response
 
     def _rpc_request(self, function_name, args=None, kwargs=None):
@@ -100,14 +85,24 @@ class PluginInstanceRedisInterface:
         args = args or []
         kwargs = kwargs or {}
 
+        fn_definition = schemas.api_function_definitions[function_name]
+        serialized_args = []
+        serialized_kwargs = {}
+        for arg_obj, arg_definition in zip(args, fn_definition.params):
+            if isinstance(arg_definition, schemas.Schema):
+                ser_arg = arg_definition.dump(arg_obj)
+            elif isinstance(arg_definition, fields.Field):
+                # Create object with arg value as attribute, so we can validate.
+                temp_obj = type('TempObj', (object,), {'val': arg_obj})
+                ser_arg = arg_definition.serialize('val', temp_obj)
+            serialized_args.append(ser_arg)
+
         # Set random channel name for response
         response_channel = str(uuid.uuid4())
         message = json.dumps({
             'function': function_name,
-            'args': args,
-            'kwargs': kwargs,
-            'args': pickle_data(args),
-            'kwargs': pickle_data(kwargs),
+            'args': serialized_args,
+            'kwargs': serialized_kwargs,
             'response_channel': response_channel
         })
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
@@ -116,26 +111,19 @@ class PluginInstanceRedisInterface:
         pubsub.subscribe(response_channel)
         self.redis.publish(self.channel, message)
 
-        timeout = time.time() + 60
         for message in pubsub.listen():
-
-            if time.time() > timeout:
-                pubsub.unsubscribe()
-                raise Exception("Timeout error")
-
             if message.get('type') == 'message':
                 response_channel = next(iter(pubsub.channels.keys())).decode('utf-8')
                 Logs.message(f"Response received on channel {response_channel}")
-                response_data = self.unpickle_message(message)
+                message_data_str = message['data'].decode('utf-8')
+                response_data = json.loads(message_data_str)
                 pubsub.unsubscribe()
-                return response_data
-
-    @staticmethod
-    def unpickle_message(message):
-        """Unpickle data from Redis message, and return contents."""
-        pickled_data = message['data']
-        response_data = unpickle_data(pickled_data)
-        return response_data
+                output_schema = fn_definition.output
+                if output_schema:
+                    deserialized_response = output_schema.load(response_data)
+                else:
+                    deserialized_response = None
+                return deserialized_response
 
     def upload_shapes(self, shape_list):
         """Upload a list of shapes to the server.
@@ -149,11 +137,6 @@ class PluginInstanceRedisInterface:
         return response
 
     def get_plugin_data(self):
-        """Upload a list of shapes to the server.
-
-        :arg: shape_list: List of shapes to upload.
-        :rtype: list. List of shape IDs.
-        """
         function_name = 'get_plugin_data'
         response = self._rpc_request(function_name)
         return response

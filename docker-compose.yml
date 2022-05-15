@@ -23,6 +23,7 @@ services:
       - redis
     volumes:
       - ./plugin_service:/app
+      # - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.7/site-packages/nanome
     command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
   
   cookbook:
@@ -39,9 +40,9 @@ services:
       - 8888:8888
     volumes:
       - ./cookbook:/app
-      # Service code is required in cookbook, for stream deserialization.
-      # This is a little hacky, but it works.
-      - ./plugin_service/service.py:/app/notebooks/service.py
+      - ./cookbook/interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
+      - ./cookbook/schemas.py:/opt/conda/lib/python3.9/site-packages/nanome/schemas.py
+
     tty: true
     stdin_open: true
     depends_on:

@@ -5,13 +5,15 @@ import json
 import os
 import redis
 import struct
-import sys
 import uuid
 
 import nanome
 from nanome.util import async_callback, Logs
 from nanome.util.enums import NotificationTypes
 from nanome._internal._util._serializers import _TypeSerializer
+from marshmallow import Schema, fields
+
+import schemas
 
 BASE_PATH = os.path.dirname(f'{os.path.realpath(__file__)}')
 MENU_PATH = os.path.join(BASE_PATH, 'default_menu.json')
@@ -29,9 +31,6 @@ class PluginService(nanome.AsyncPluginInstance):
         redis_channel = os.environ.get('REDIS_CHANNEL')
         self.redis_channel = redis_channel if redis_channel else str(uuid.uuid4())
         Logs.message(f"Starting {self.__class__.__name__} on Redis Channel {self.redis_channel}")
-        # We need to increase the recursion limit in order to properly serialize Complexes
-        recursion_limit = 100000
-        sys.setrecursionlimit(recursion_limit)
         self.streams = []
         self.shapes = []
 
@@ -40,9 +39,20 @@ class PluginService(nanome.AsyncPluginInstance):
         default_url = os.environ.get('DEFAULT_URL')
         jupyter_token = os.environ.get('JUPYTER_TOKEN')
         url = f'{default_url}?token={jupyter_token}'
-        print(f'Opening {url}')
+        Logs.message(f'Opening {url}')
         self.open_url(url)
         await self.poll_redis_for_requests(self.redis_channel)
+
+    def deserialize_arg(self, arg_data):
+        """Deserialize arguments recursively."""
+        if isinstance(arg_data, list):
+            for arg_item in arg_data:
+                self.deserialize_arg(arg_item)
+        if arg_data.__class__ in schemas.structure_schema_map:
+            schema_class = schemas.structure_schema_map[arg_data.__class__]
+            schema = schema_class()
+            arg = schema.load(arg_data)
+        return arg
 
     @async_callback
     async def poll_redis_for_requests(self, redis_channel):
@@ -66,25 +76,50 @@ class PluginService(nanome.AsyncPluginInstance):
 
                 Logs.message(f"Received Request: {data.get('function')}")
                 fn_name = data['function']
-                args = self.unpickle_data(data['args'])
-                kwargs = self.unpickle_data(data['kwargs'])
+                if fn_name == 'update_workspace':
+                    print('huh?')
+                serialized_args = data['args']
+                serialized_kwargs = data['kwargs']
+                fn_definition = schemas.api_function_definitions[fn_name]
+                fn_args = []
+                fn_kwargs = {}
+                
+                # Deserialize args and kwargs into python classes
+                for ser_arg, schema_or_field in zip(serialized_args, fn_definition.params):
+                    if isinstance(schema_or_field, Schema):
+                        arg = schema_or_field.load(ser_arg)
+                    elif isinstance(schema_or_field, fields.Field):
+                        # Field that does not need to be deserialized
+                        arg = schema_or_field.deserialize(ser_arg)
+                    fn_args.append(arg)
                 response_channel = data['response_channel']
 
                 function_to_call = getattr(self, fn_name)
                 try:
-                    response = await function_to_call(*args, **kwargs)
+                    response = await function_to_call(*fn_args, **fn_kwargs)
                 except (TypeError, RuntimeError) as e:
                     # TypeError Happens when you await a non-sync function.
                     # Because nanome-lib doesn't define functions using `async def`,
                     # I can't find a reliable way to determine whether we need to await asyncs.
                     # For now, just recall the function without async.
-                    response = function_to_call(*args, **kwargs)
+                    response = function_to_call(*fn_args, **fn_kwargs)
                 except struct.error:
                     Logs.error(f"Serialization error on {fn_name} call")
                 Logs.message(response)
-                pickled_response = self.pickle_data(response)
+
+                # Serialize response before sending back to client
+                output_schema = fn_definition.output
+                serialized_response = {}
+                if output_schema:
+                    if isinstance(output_schema, Schema):
+                        serialized_response = output_schema.dump(response)
+                    elif isinstance(output_schema, fields.Field):
+                        # Field that does not need to be deserialized
+                        serialized_response = output_schema.serialize(response)
+                json_response = json.dumps(serialized_response)
+                response_channel = data['response_channel']
                 Logs.message(f'Publishing Response to {response_channel}')
-                rds.publish(response_channel, pickled_response)
+                rds.publish(response_channel, json_response)
 
     @staticmethod
     def pickle_data(data):
@@ -110,9 +145,8 @@ class PluginService(nanome.AsyncPluginInstance):
         if stream:
             self.streams.append(stream)
 
-        stream_data = {"stream_id": stream._Stream__id}
-        output = (stream_data, error)
-        return output
+        stream_data = {"stream_id": stream._Stream__id, 'error': error}
+        return stream_data
 
     def stream_update(self, stream_id, stream_data):
         """Function to update stream."""
@@ -128,11 +162,11 @@ class PluginService(nanome.AsyncPluginInstance):
 
     async def upload_shapes(self, shape_list):
         for shape in shape_list:
-            print(shape.index)
+            Logs.message(shape.index)
         response = await nanome.api.shapes.Shape.upload_multiple(shape_list)
         self.shapes.extend(response)
         for shape in shape_list:
-            print(shape.index)
+            Logs.message(shape.index)
         return shape_list
 
     def get_plugin_data(self):
