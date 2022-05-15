@@ -76,6 +76,8 @@ class PluginService(nanome.AsyncPluginInstance):
 
                 Logs.message(f"Received Request: {data.get('function')}")
                 fn_name = data['function']
+                if fn_name == 'update_workspace':
+                    print('huh?')
                 serialized_args = data['args']
                 serialized_kwargs = data['kwargs']
                 fn_definition = schemas.api_function_definitions[fn_name]
