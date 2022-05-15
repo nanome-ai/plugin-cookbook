@@ -78,6 +78,7 @@ class AtomSchema(StructureSchema):
                 raise AttributeError('Could not set attribute {}'.format(key))
         return new_obj
 
+
 class BondSchema(StructureSchema):
     atom1 = AtomSchema(only=('index',))
     atom2 = AtomSchema(only=('index',))
@@ -223,8 +224,6 @@ class PresenterInfoSchema(Schema):
         return new_obj
     
 
-
-
 structure_schema_map = {
     structure.Atom: AtomSchema(),
     structure.Bond: BondSchema(),
@@ -317,6 +316,7 @@ class RequestControllerTransforms:
         Vector3Field(), QuaternionField(),
         Vector3Field(), QuaternionField()
     ]
+
 
 api_function_definitions = {
     'request_workspace':RequestWorkspace(),
