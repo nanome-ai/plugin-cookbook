@@ -210,7 +210,7 @@ class PresenterInfoSchema(Schema):
     account_name = fields.Str()
     account_email = fields.Email()
     has_org = fields.Bool()
-    org_id =fields.Integer()
+    org_id = fields.Integer()
     org_name = fields.Str()
 
     @post_load
@@ -222,7 +222,7 @@ class PresenterInfoSchema(Schema):
             except AttributeError:
                 raise AttributeError('Could not set attribute {}'.format(key))
         return new_obj
-    
+
 
 structure_schema_map = {
     structure.Atom: AtomSchema(),
@@ -319,7 +319,7 @@ class RequestControllerTransforms:
 
 
 api_function_definitions = {
-    'request_workspace':RequestWorkspace(),
+    'request_workspace': RequestWorkspace(),
     'request_complexes': RequestComplexes(),
     'update_structures_shallow': UpdateStructuresShallow(),
     'update_structures_deep': UpdateStructuresDeep(),

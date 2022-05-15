@@ -83,7 +83,7 @@ class PluginService(nanome.AsyncPluginInstance):
                 fn_definition = schemas.api_function_definitions[fn_name]
                 fn_args = []
                 fn_kwargs = {}
-                
+
                 # Deserialize args and kwargs into python classes
                 for ser_arg, schema_or_field in zip(serialized_args, fn_definition.params):
                     if isinstance(schema_or_field, Schema):

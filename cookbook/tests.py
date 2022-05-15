@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
 class APITestCase(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -39,12 +39,12 @@ class APITestCase(unittest.TestCase):
         comp_list = cls.plugin_instance.request_complex_list()
         cls.test_comp = cls.plugin_instance.request_complexes([comp_list[0].index])[0]
         assert cls.test_comp.index != -1
-    
+
     @classmethod
     def tearDownClass(cls):
         # cls.plugin_instance.update_workspace(cls.previous_workspace)
         super().tearDownClass()
-    
+
     def test_request_complex_list(self):
         comp_list = self.plugin_instance.request_complex_list()
         self.assertTrue(isinstance(comp_list[0], structure.Complex))
@@ -54,7 +54,7 @@ class APITestCase(unittest.TestCase):
         comp_list = self.plugin_instance.request_complexes(indices)
         comp = comp_list[0]
         self.assertTrue(next(comp.atoms, None) is not None)
-    
+
     def test_update_structures_shallow(self):
         self.test_comp.boxed = True
         self.plugin_instance.update_structures_shallow([self.test_comp])
@@ -75,7 +75,7 @@ class APITestCase(unittest.TestCase):
         # Zoom on complex
         atom = next(self.test_comp.atoms)
         self.plugin_instance.zoom_on_structures([atom])
-    
+
     @unittest.skip("Not working yet.")
     def test_center_on_structures(self):
         # Center on complex
@@ -85,11 +85,11 @@ class APITestCase(unittest.TestCase):
         notification_type = enums.NotificationTypes.success
         self.plugin_instance.send_notification(
             notification_type, "Test notification Successful")
-    
+
     def test_open_url(self):
         url = 'https://nanome.ai'
         self.plugin_instance.open_url(url)
-    
+
     def test_request_presenter_info(self):
         presenter_info = self.plugin_instance.request_presenter_info()
         self.assertTrue(isinstance(presenter_info, PresenterInfo))
