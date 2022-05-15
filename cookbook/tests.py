@@ -30,7 +30,7 @@ class APITestCase(unittest.TestCase):
         # cls.previous_workspace = cls.plugin_instance.request_workspace()
         # Update workspace Workspace, and load test structure
         ws = structure.Workspace()
-        test_file = '1tyl.pdb'
+        test_file = 'test_data/1tyl.pdb'
         comp = structure.Complex.io.from_pdb(path=test_file)
         comp.name = test_file
         ws.add_complex(comp)
