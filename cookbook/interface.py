@@ -66,6 +66,9 @@ class PluginInstanceRedisInterface:
             return proxy_redis_message
         return getattr(self, name)
 
+    def ping(self):
+        self.redis.ping()
+
     def create_writing_stream(self, atom_indices, stream_type):
         """Return a stream wrapped in the RedisStreamInterface"""
         function_name = 'create_writing_stream'

@@ -5,3 +5,4 @@ tag=latest
 docker-compose build
 docker tag plugin-cookbook_cookbook:latest $uri:$tag
 docker push $uri:$tag
+cd /home/mike/workspace/helm-charts && helm uninstall test && helm install test -f values-cookbook.yaml nanome/plugins/cookbook
