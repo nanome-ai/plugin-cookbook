@@ -4,10 +4,9 @@ import uuid
 
 from nanome import PluginInstance
 from nanome.util import Logs
-from nanome.api import structure
-from marshmallow import Schema, fields
+from marshmallow import fields
 
-from nanome import schemas
+import schemas
 
 
 class StreamRedisInterface:
@@ -66,6 +65,9 @@ class PluginInstanceRedisInterface:
                 return response
             return proxy_redis_message
         return getattr(self, name)
+
+    def ping(self):
+        self.redis.ping()
 
     def create_writing_stream(self, atom_indices, stream_type):
         """Return a stream wrapped in the RedisStreamInterface"""

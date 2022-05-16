@@ -18,9 +18,6 @@ RUN npm install
 
 # Set up jupyter conda environment
 RUN conda update conda
-COPY jupyter_environ.yml .
-
-# RUN conda env create -f jupyter_environ.yml
 RUN conda install -c conda-forge jupyterlab rdkit pip
 
 COPY requirements.txt .
