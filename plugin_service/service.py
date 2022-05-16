@@ -105,7 +105,6 @@ class PluginService(nanome.AsyncPluginInstance):
                     response = function_to_call(*fn_args, **fn_kwargs)
                 except struct.error:
                     Logs.error(f"Serialization error on {fn_name} call")
-                Logs.message(response)
 
                 # Serialize response before sending back to client
                 output_schema = fn_definition.output
