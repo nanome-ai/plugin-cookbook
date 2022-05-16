@@ -38,10 +38,10 @@ services:
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
     ports:
       - 8888:8888
-    volumes:
-      - ./cookbook:/app
-      - ./cookbook/interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
-      - ./cookbook/schemas.py:/opt/conda/lib/python3.9/site-packages/nanome/schemas.py
+    # volumes:
+    #   - ./cookbook:/app
+    #   - ./cookbook/interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
+    #   - ./cookbook/schemas.py:/opt/conda/lib/python3.9/site-packages/nanome/schemas.py
 
     tty: true
     stdin_open: true

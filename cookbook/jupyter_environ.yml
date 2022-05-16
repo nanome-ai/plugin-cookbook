@@ -7,7 +7,7 @@ dependencies:
   - pip
   - rdkit
   - pip:
-      - nanome==0.34.3
+      - nanome==0.37.2
       - jupyterlab
       - dill
       - redis

@@ -4,8 +4,7 @@ import uuid
 
 from nanome import PluginInstance
 from nanome.util import Logs
-from nanome.api import structure
-from marshmallow import Schema, fields
+from marshmallow import fields
 
 from nanome import schemas
 
