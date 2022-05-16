@@ -3,10 +3,22 @@ import logging
 from marshmallow import Schema, fields, post_load, ValidationError
 from nanome.api import structure
 from nanome.api.user import PresenterInfo
-from nanome.util import Vector3, Quaternion
+from nanome.util import Vector3, Quaternion, Color, enums
 
 
 logging = logging.getLogger(__name__)
+
+
+class EnumField(fields.Field):
+    """Marshmallow field for enum type"""
+    def __init__(self, *args, enum=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not enum:
+            raise ValueError("Must specify enum")
+        self.enum = enum
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        return self.enum(value)
 
 
 class StreamSchema(Schema):
@@ -35,6 +47,17 @@ class Vector3Field(fields.Field):
         return Vector3(*value)
 
 
+class ColorField(fields.Field):
+
+    def _serialize(self, value: Color, attr, obj, **kwargs):
+        return [value.r, value.g, value.b, value.a]
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if len(value) != 4:
+            raise ValidationError("Quaternion must contain 4 values")
+        return Color(*value)
+
+
 class StructureSchema(Schema):
     index = fields.Integer(default=-1)
 
@@ -51,15 +74,15 @@ class AtomSchema(StructureSchema):
     acceptor = fields.Boolean()
     donor = fields.Boolean()
     polar_hydrogen = fields.Boolean()
-    atom_mode = fields.Integer()  # Enum, see nanome.util.enums.AtomRenderingMode
+    atom_mode = EnumField(enum=enums.AtomRenderingMode)
     serial = fields.Integer()
     current_conformer = fields.Integer(load_only=True)
     conformer_count = fields.Integer(load_only=True)
     positions = fields.List(Vector3Field())
     label_text = fields.String()
-    # atom_color = fields.String()
+    atom_color = ColorField()
     atom_scale = fields.Float()
-    # surface_color = fields.Str()  # Hex color
+    surface_color = ColorField()
     symbol = fields.Str()
     name = fields.Str()
     position = Vector3Field()
@@ -82,7 +105,7 @@ class AtomSchema(StructureSchema):
 class BondSchema(StructureSchema):
     atom1 = AtomSchema(only=('index',))
     atom2 = AtomSchema(only=('index',))
-    kind = fields.Integer()  # Enum, see nanome.util.enums.Kind
+    kind = EnumField(enum=enums.Kind)
 
     @post_load
     def make_bond(self, data, **kwargs):
@@ -100,14 +123,14 @@ class ResidueSchema(StructureSchema):
     bonds = fields.List(fields.Nested(BondSchema))
     ribboned = fields.Boolean()
     ribbon_size = fields.Float()
-    ribbon_mode = fields.Integer()  # Enum, see nanome.util.enums.RibbonMode
-    # ribbon_color = fields.Str() # hex code
+    ribbon_mode = EnumField(enum=enums.RibbonMode)
+    ribbon_color = ColorField()
     labeled = fields.Boolean()
     label_text = fields.Str()
     type = fields.Str()
     serial = fields.Integer()
     name = fields.Str()
-    # secondary_structure = fields.Integer() # Enum, see nanome.util.enums.SecondaryStructure
+    secondary_structure = EnumField(enum=enums.SecondaryStructure)
     ignored_alt_locs = fields.List(fields.Str())
 
     @post_load
@@ -265,7 +288,7 @@ class UpdateWorkspace:
 
 
 class SendNotification:
-    params = [fields.Int(), fields.Str()]  # ~nanome.util.enums.NotificationTypes
+    params = [EnumField(enum=enums.NotificationTypes), fields.Str()]
     output = None
 
 

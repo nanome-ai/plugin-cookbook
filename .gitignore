@@ -19,3 +19,4 @@ cookbook/.nanome_lib
 .env*
 __pycache__
 .vscode
+push_images.sh
