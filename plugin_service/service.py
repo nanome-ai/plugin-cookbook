@@ -43,10 +43,12 @@ class PluginService(nanome.AsyncPluginInstance):
     @async_callback
     async def on_run(self):
         default_url = os.environ.get('DEFAULT_URL')
-        jupyter_token = os.environ.get('JUPYTER_TOKEN')
-        url = f'{default_url}?token={jupyter_token}'
-        Logs.message(f'Opening {url}')
-        self.open_url(url)
+        if default_url:
+            jupyter_token = os.environ.get('JUPYTER_TOKEN')
+            url = f'{default_url}?token={jupyter_token}'
+            Logs.message(f'Opening {url}')
+            self.open_url(url)
+        Logs.message("Polling for requests")
         await self.poll_redis_for_requests(self.redis_channel)
 
     def deserialize_arg(self, arg_data):
