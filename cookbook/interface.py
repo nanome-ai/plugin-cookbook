@@ -1,6 +1,7 @@
 import json
 import redis
 import uuid
+import time
 
 from nanome import PluginInstance
 from nanome.util import Logs
@@ -112,8 +113,16 @@ class PluginInstanceRedisInterface:
         pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
         pubsub.subscribe(response_channel)
         self.redis.publish(self.channel, message)
+        timeout = 10
 
-        for message in pubsub.listen():
+        start_time = time.time()
+        while True:
+            message = pubsub.get_message()
+            if time.time() >= start_time + timeout:
+                raise TimeoutError(f"Timeout waiting for response from RPC {function_name}")
+            if not message:
+                continue
+
             if message.get('type') == 'message':
                 response_channel = next(iter(pubsub.channels.keys())).decode('utf-8')
                 Logs.message(f"Response received on channel {response_channel}")
