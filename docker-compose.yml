@@ -18,6 +18,7 @@ services:
       - ARGS=${ARGS:-}
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
+      - PLUGIN_NAME=${PLUGIN_NAME:-}
 
     depends_on:
       - redis
@@ -40,9 +41,6 @@ services:
       - 8888:8888
     volumes:
       - ./cookbook:/app
-      - ./cookbook/interface.py:/opt/conda/lib/python3.9/site-packages/nanome/interface.py
-      - ./cookbook/schemas.py:/opt/conda/lib/python3.9/site-packages/nanome/schemas.py
-
     tty: true
     stdin_open: true
     depends_on:

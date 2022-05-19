@@ -1,11 +1,13 @@
 import base64
 import dill
 import io
+import inspect
 import json
 import os
 import redis
 import struct
 import uuid
+import functools
 
 import nanome
 from nanome.util import async_callback, Logs
@@ -34,6 +36,10 @@ class PluginService(nanome.AsyncPluginInstance):
         self.streams = []
         self.shapes = []
 
+        self.rds = redis.Redis(
+            host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD,
+            decode_responses=True)
+
     @async_callback
     async def on_run(self):
         default_url = os.environ.get('DEFAULT_URL')
@@ -60,13 +66,18 @@ class PluginService(nanome.AsyncPluginInstance):
 
         Subscribe to provided redis channel, and process any requests received.
         """
-        rds = redis.Redis(
-            host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD,
-            decode_responses=True)
-        pubsub = rds.pubsub(ignore_subscribe_messages=True)
+        pubsub = self.rds.pubsub(ignore_subscribe_messages=True)
         pubsub.subscribe(redis_channel)
 
-        for message in pubsub.listen():
+        # for message in pubsub.listen():
+        while True:
+            # Run these to properly handle callback responses
+            self._network._receive()
+            self._process_manager.update()
+            # Check if any new messages have been received
+            message = pubsub.get_message()
+            if not message:
+                continue
             if message.get('type') == 'message':
                 try:
                     data = json.loads(message.get('data'))
@@ -76,8 +87,6 @@ class PluginService(nanome.AsyncPluginInstance):
 
                 Logs.message(f"Received Request: {data.get('function')}")
                 fn_name = data['function']
-                if fn_name == 'update_workspace':
-                    print('huh?')
                 serialized_args = data['args']
                 serialized_kwargs = data['kwargs']
                 fn_definition = schemas.api_function_definitions[fn_name]
@@ -93,32 +102,33 @@ class PluginService(nanome.AsyncPluginInstance):
                         arg = schema_or_field.deserialize(ser_arg)
                     fn_args.append(arg)
                 response_channel = data['response_channel']
-
                 function_to_call = getattr(self, fn_name)
-                try:
-                    response = await function_to_call(*fn_args, **fn_kwargs)
-                except (TypeError, RuntimeError) as e:
-                    # TypeError Happens when you await a non-sync function.
-                    # Because nanome-lib doesn't define functions using `async def`,
-                    # I can't find a reliable way to determine whether we need to await asyncs.
-                    # For now, just recall the function without async.
-                    response = function_to_call(*fn_args, **fn_kwargs)
-                except struct.error:
-                    Logs.error(f"Serialization error on {fn_name} call")
+                # Set up callback function
+                argspec = inspect.getargspec(function_to_call)
+                callback_fn = None
+                if 'callback' in argspec.args:
+                    callback_fn = functools.partial(
+                        self.message_callback, fn_definition, response_channel)
+                    fn_args.append(callback_fn)
+                # Call API function
+                function_to_call(*fn_args, **fn_kwargs)
+                # For non-callback fucntions, ensure message sent back
+                if not callback_fn:
+                    self.message_callback(fn_definition, response_channel)
 
-                # Serialize response before sending back to client
-                output_schema = fn_definition.output
-                serialized_response = {}
-                if output_schema:
-                    if isinstance(output_schema, Schema):
-                        serialized_response = output_schema.dump(response)
-                    elif isinstance(output_schema, fields.Field):
-                        # Field that does not need to be deserialized
-                        serialized_response = output_schema.serialize(response)
-                json_response = json.dumps(serialized_response)
-                response_channel = data['response_channel']
-                Logs.message(f'Publishing Response to {response_channel}')
-                rds.publish(response_channel, json_response)
+    def message_callback(self, fn_definition, response_channel, response=None):
+        # When response data received from NTS, serialize and publish to response channel
+        output_schema = fn_definition.output
+        serialized_response = {}
+        if output_schema:
+            if isinstance(output_schema, Schema):
+                serialized_response = output_schema.dump(response)
+            elif isinstance(output_schema, fields.Field):
+                # Field that does not need to be deserialized
+                serialized_response = output_schema.serialize(response)
+        json_response = json.dumps(serialized_response)
+        Logs.message(f'Publishing Response to {response_channel}')
+        self.rds.publish(response_channel, json_response)
 
     @staticmethod
     def pickle_data(data):

@@ -2,7 +2,6 @@ import os
 import unittest
 import time
 from interface import PluginInstanceRedisInterface
-from schemas import api_function_definitions
 from nanome.api import structure
 from nanome.util import enums
 from nanome.api.user import PresenterInfo
@@ -26,8 +25,8 @@ class APITestCase(unittest.TestCase):
         cls.plugin_instance = PluginInstanceRedisInterface(
             redis_host, redis_port, redis_password, redis_channel)
         # Save current workspace, to reload after tests
-        # logging.info("Saving current workspace")
-        # cls.previous_workspace = cls.plugin_instance.request_workspace()
+        logging.info("Saving current workspace")
+        cls.previous_workspace = cls.plugin_instance.request_workspace()
         # Update workspace Workspace, and load test structure
         ws = structure.Workspace()
         test_file = 'test_data/1tyl.pdb'
@@ -37,12 +36,14 @@ class APITestCase(unittest.TestCase):
         cls.plugin_instance.update_workspace(ws)
         # Get updated index of test_comp
         comp_list = cls.plugin_instance.request_complex_list()
-        cls.test_comp = cls.plugin_instance.request_complexes([comp_list[0].index])[0]
+        comp_index = comp_list[0].index
+        comp_results = cls.plugin_instance.request_complexes([comp_index])
+        cls.test_comp = comp_results[0]
         assert cls.test_comp.index != -1
     
     @classmethod
     def tearDownClass(cls):
-        # cls.plugin_instance.update_workspace(cls.previous_workspace)
+        cls.plugin_instance.update_workspace(cls.previous_workspace)
         super().tearDownClass()
     
     def test_request_complex_list(self):
