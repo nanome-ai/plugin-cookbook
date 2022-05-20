@@ -1,13 +1,12 @@
-import base64
-import dill
-import io
+import asyncio
+import functools
 import inspect
+import io
 import json
 import os
 import redis
-import struct
+import threading
 import uuid
-import functools
 
 import nanome
 from nanome.util import async_callback, Logs
@@ -51,18 +50,6 @@ class PluginService(nanome.AsyncPluginInstance):
         Logs.message("Polling for requests")
         await self.poll_redis_for_requests(self.redis_channel)
 
-    def deserialize_arg(self, arg_data):
-        """Deserialize arguments recursively."""
-        if isinstance(arg_data, list):
-            for arg_item in arg_data:
-                self.deserialize_arg(arg_item)
-        if arg_data.__class__ in schemas.structure_schema_map:
-            schema_class = schemas.structure_schema_map[arg_data.__class__]
-            schema = schema_class()
-            arg = schema.load(arg_data)
-        return arg
-
-    @async_callback
     async def poll_redis_for_requests(self, redis_channel):
         """Start a non-halting loop polling for and processing Plugin Requests.
 
@@ -71,55 +58,63 @@ class PluginService(nanome.AsyncPluginInstance):
         pubsub = self.rds.pubsub(ignore_subscribe_messages=True)
         pubsub.subscribe(redis_channel)
 
-        # for message in pubsub.listen():
         while True:
             # Run these to properly handle callback responses
-            self._network._receive()
-            self._process_manager.update()
+            net_receive = self._network._receive()
+            proc_update = self._process_manager.update()
+            if not net_receive or not proc_update:
+                break
+
             # Check if any new messages have been received
             message = pubsub.get_message()
             if not message:
                 continue
             if message.get('type') == 'message':
-                try:
-                    data = json.loads(message.get('data'))
-                except json.JSONDecodeError:
-                    error_message = 'JSON Decode Failure'
-                    self.send_notification(NotificationTypes.error, error_message)
+                # Process message in a thread, so errors don't crash the main loop
+                thread = threading.Thread(target=self.process_message, args=[message])
+                thread.start()
 
-                Logs.message(f"Received Request: {data.get('function')}")
-                fn_name = data['function']
-                serialized_args = data['args']
-                serialized_kwargs = data['kwargs']
-                fn_definition = schemas.api_function_definitions[fn_name]
-                fn_args = []
-                fn_kwargs = {}
-                
-                # Deserialize args and kwargs into python classes
-                for ser_arg, schema_or_field in zip(serialized_args, fn_definition.params):
-                    if isinstance(schema_or_field, Schema):
-                        arg = schema_or_field.load(ser_arg)
-                    elif isinstance(schema_or_field, fields.Field):
-                        # Field that does not need to be deserialized
-                        arg = schema_or_field.deserialize(ser_arg)
-                    fn_args.append(arg)
-                response_channel = data['response_channel']
-                function_to_call = getattr(self, fn_name)
-                # Set up callback function
-                argspec = inspect.getargspec(function_to_call)
-                callback_fn = None
-                if 'callback' in argspec.args:
-                    callback_fn = functools.partial(
-                        self.message_callback, fn_definition, response_channel)
-                    fn_args.append(callback_fn)
-                # Call API function
-                function_to_call(*fn_args, **fn_kwargs)
-                # For non-callback fucntions, ensure message sent back
-                if not callback_fn:
-                    self.message_callback(fn_definition, response_channel)
+    def process_message(self, message):
+        """Deserialize message and forward request to NTS."""
+        try:
+            data = json.loads(message.get('data'))
+        except json.JSONDecodeError:
+            error_message = 'JSON Decode Failure'
+            self.send_notification(NotificationTypes.error, error_message)
+
+        Logs.message(f"Received Request: {data.get('function')}")
+        fn_name = data['function']
+        serialized_args = data['args']
+        serialized_kwargs = data['kwargs']
+        fn_definition = schemas.api_function_definitions[fn_name]
+        fn_args = []
+        fn_kwargs = {}
+
+        # Deserialize args and kwargs into python classes
+        for ser_arg, schema_or_field in zip(serialized_args, fn_definition.params):
+            if isinstance(schema_or_field, Schema):
+                arg = schema_or_field.load(ser_arg)
+            elif isinstance(schema_or_field, fields.Field):
+                # Field that does not need to be deserialized
+                arg = schema_or_field.deserialize(ser_arg)
+            fn_args.append(arg)
+        response_channel = data['response_channel']
+        function_to_call = getattr(self, fn_name)
+        # Set up callback function
+        argspec = inspect.getargspec(function_to_call)
+        callback_fn = None
+        if 'callback' in argspec.args:
+            callback_fn = functools.partial(
+                self.message_callback, fn_definition, response_channel)
+            fn_args.append(callback_fn)
+        # Call API function
+        function_to_call(*fn_args, **fn_kwargs)
+        # For non-callback fucntions, ensure message sent back
+        if not callback_fn:
+            self.message_callback(fn_definition, response_channel)
 
     def message_callback(self, fn_definition, response_channel, response=None):
-        # When response data received from NTS, serialize and publish to response channel
+        """When response data received from NTS, serialize and publish to response channel."""
         output_schema = fn_definition.output
         serialized_response = {}
         if output_schema:
@@ -132,22 +127,16 @@ class PluginService(nanome.AsyncPluginInstance):
         Logs.message(f'Publishing Response to {response_channel}')
         self.rds.publish(response_channel, json_response)
 
-    @staticmethod
-    def pickle_data(data):
-        """Return the stringified bytes of pickled data."""
-        bytes_output = io.BytesIO()
-        dill.dump(data, bytes_output)
-        bytes_output_base64 = base64.b64encode(bytes_output.getvalue()).decode()
-        bytes_output.close()
-        return bytes_output_base64
-
-    @staticmethod
-    def unpickle_data(pickled_data):
-        """Unpickle data into its original python version."""
-        pickle_bytes = io.BytesIO(base64.b64decode(pickled_data))
-        unpickled_data = dill.loads(pickle_bytes.read())
-        pickle_bytes.close()
-        return unpickled_data
+    def deserialize_arg(self, arg_data):
+        """Deserialize arguments recursively."""
+        if isinstance(arg_data, list):
+            for arg_item in arg_data:
+                self.deserialize_arg(arg_item)
+        if arg_data.__class__ in schemas.structure_schema_map:
+            schema_class = schemas.structure_schema_map[arg_data.__class__]
+            schema = schema_class()
+            arg = schema.load(arg_data)
+        return arg
 
     async def create_writing_stream(self, indices_list, stream_type, callback=None):
         """After creating stream, save it for future lookups."""
