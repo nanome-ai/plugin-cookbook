@@ -1,7 +1,5 @@
-import asyncio
 import functools
 import inspect
-import io
 import json
 import os
 import redis
@@ -14,7 +12,8 @@ from nanome.util.enums import NotificationTypes
 from nanome._internal._util._serializers import _TypeSerializer
 from marshmallow import Schema, fields
 
-import schemas
+from nanome.api import schemas
+from api_schemas import api_function_definitions
 
 BASE_PATH = os.path.dirname(f'{os.path.realpath(__file__)}')
 MENU_PATH = os.path.join(BASE_PATH, 'default_menu.json')
@@ -86,7 +85,7 @@ class PluginService(nanome.AsyncPluginInstance):
         fn_name = data['function']
         serialized_args = data['args']
         serialized_kwargs = data['kwargs']
-        fn_definition = schemas.api_function_definitions[fn_name]
+        fn_definition = api_function_definitions[fn_name]
         fn_args = []
         fn_kwargs = {}
 
