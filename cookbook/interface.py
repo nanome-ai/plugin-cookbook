@@ -4,11 +4,10 @@ import uuid
 import time
 
 from nanome import PluginInstance
+from nanome.api import schemas
 from nanome.util import Logs
 from marshmallow import fields
-
-import schemas
-
+from api_definitions import api_function_definitions
 
 class StreamRedisInterface:
     """Gets wrapped around a stream object on creation, and is used to send data to the stream through redis.
@@ -88,7 +87,7 @@ class PluginInstanceRedisInterface:
         args = args or []
         kwargs = kwargs or {}
 
-        fn_definition = schemas.api_function_definitions[function_name]
+        fn_definition = api_function_definitions[function_name]
         serialized_args = []
         serialized_kwargs = {}
         for arg_obj, arg_definition in zip(args, fn_definition.params):

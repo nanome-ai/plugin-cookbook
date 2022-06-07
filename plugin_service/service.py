@@ -8,12 +8,12 @@ import uuid
 
 import nanome
 from nanome.util import async_callback, Logs
-from nanome.util.enums import NotificationTypes
+from nanome.util.enums import NotificationTypes, PluginListButtonType
 from nanome._internal._util._serializers import _TypeSerializer
 from marshmallow import Schema, fields
 
 from nanome.api import schemas
-from api_schemas import api_function_definitions
+from api_definitions import api_function_definitions, structure_schema_map
 
 BASE_PATH = os.path.dirname(f'{os.path.realpath(__file__)}')
 MENU_PATH = os.path.join(BASE_PATH, 'default_menu.json')
@@ -47,6 +47,7 @@ class PluginService(nanome.AsyncPluginInstance):
             Logs.message(f'Opening {url}')
             self.open_url(url)
         Logs.message("Polling for requests")
+        self.set_plugin_list_button(PluginListButtonType.run, text='Live', usable=False)
         await self.poll_redis_for_requests(self.redis_channel)
 
     async def poll_redis_for_requests(self, redis_channel):

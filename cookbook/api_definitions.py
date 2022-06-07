@@ -13,7 +13,7 @@ structure_schema_map = {
     structure.Residue: schemas.ResidueSchema(),
     structure.Chain: schemas.ChainSchema(),
     structure.Molecule: schemas.MoleculeSchema(),
-    structure.Complex: schemas.schemas.ComplexSchema(),
+    structure.Complex: schemas.ComplexSchema(),
 }
 
 
@@ -53,7 +53,7 @@ class SendNotification:
 
 
 class ZoomOnStructures:
-    params = [schemas.StructureSchema(many=True)]
+    params = [schemas.StructureSchema(many=True, partial=True)]
     output = None
 
 
@@ -77,9 +77,9 @@ class OpenUrl:
     output = None
 
 
-class CreateWritingStream:
-    params = [fields.List(fields.Integer), fields.Integer()]
-    output = schemas.StreamSchema()
+# class CreateWritingStream:
+#     params = [fields.List(fields.Integer), fields.Integer()]
+#     output = schemas.StreamSchema()
 
 
 class StreamUpdate:
@@ -107,7 +107,7 @@ api_function_definitions = {
     'update_structures_shallow': UpdateStructuresShallow(),
     'update_structures_deep': UpdateStructuresDeep(),
     'request_complex_list': RequestComplexList(),
-    'create_writing_stream': CreateWritingStream(),
+    # 'create_writing_stream': CreateWritingStream(),
     'stream_update': StreamUpdate(),
     'update_workspace': UpdateWorkspace(),
     'zoom_on_structures': ZoomOnStructures(),
