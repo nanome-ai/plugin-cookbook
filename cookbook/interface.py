@@ -9,6 +9,7 @@ from nanome.util import Logs
 from marshmallow import fields
 from api_definitions import api_function_definitions
 
+
 class StreamRedisInterface:
     """Gets wrapped around a stream object on creation, and is used to send data to the stream through redis.
 
@@ -17,8 +18,8 @@ class StreamRedisInterface:
     """
 
     def __init__(self, stream_data, plugin_interface):
-        self.stream_id = stream_data['stream_id']
-        self.error = stream_data['error']
+        self.stream_id = stream_data['id']
+        # self.error = stream_data['error']
         self._plugin_interface = plugin_interface
 
 
@@ -69,16 +70,6 @@ class PluginInstanceRedisInterface:
     def ping(self):
         self.redis.ping()
 
-    def create_writing_stream(self, atom_indices, stream_type):
-        """Return a stream wrapped in the RedisStreamInterface"""
-        function_name = 'create_writing_stream'
-        args = [atom_indices, stream_type]
-        stream = self._rpc_request(function_name, args=args)
-        if stream:
-            stream_interface = StreamRedisInterface(stream, self)
-            response = stream_interface
-        return response
-
     def _rpc_request(self, function_name, args=None, kwargs=None):
         """Publish an RPC request to redis, and await response.
 
@@ -90,13 +81,18 @@ class PluginInstanceRedisInterface:
         fn_definition = api_function_definitions[function_name]
         serialized_args = []
         serialized_kwargs = {}
+        
         for arg_obj, arg_definition in zip(args, fn_definition.params):
+            ser_arg = None
             if isinstance(arg_definition, schemas.Schema):
                 ser_arg = arg_definition.dump(arg_obj)
-            elif isinstance(arg_definition, fields.Field):
+            elif isinstance(arg_definition, fields.Field): 
                 # Create object with arg value as attribute, so we can validate.
                 temp_obj = type('TempObj', (object,), {'val': arg_obj})
                 ser_arg = arg_definition.serialize('val', temp_obj)
+            elif isinstance(arg_definition, list):
+                for obj, d
+                breakpoint()
             serialized_args.append(ser_arg)
 
         # Set random channel name for response
@@ -134,6 +130,17 @@ class PluginInstanceRedisInterface:
                 else:
                     deserialized_response = None
                 return deserialized_response
+    
+    def stream_update(self, stream_id, stream_data):
+        """Upload stream data.
+
+        :arg: stream_id: int Stream id.
+        :rtype: stream_data: list.
+        """
+        function_name = 'stream_update'
+        args = [stream_id, stream_data]
+        response = self._rpc_request(function_name, args=args)
+        return response
 
     def upload_shapes(self, shape_list):
         """Upload a list of shapes to the server.

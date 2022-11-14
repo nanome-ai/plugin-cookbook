@@ -37,6 +37,9 @@ services:
       - JUPYTER_ENABLE_LAB=yes
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
+      - NTS_HOST=${NTS_HOST:-}
+      - NTS_PORT=${NTS_PORT:-}
+      - NTS_KEY=${NTS_KEY:-}
     ports:
       - 8888:8888
     volumes:

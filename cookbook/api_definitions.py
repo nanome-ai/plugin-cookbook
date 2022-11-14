@@ -77,9 +77,9 @@ class OpenUrl:
     output = None
 
 
-# class CreateWritingStream:
-#     params = [fields.List(fields.Integer), fields.Integer()]
-#     output = schemas.StreamSchema()
+class CreateWritingStream:
+    params = [fields.List(fields.Integer), fields.Integer()]
+    output = schemas.StreamSchema()
 
 
 class StreamUpdate:
@@ -107,7 +107,7 @@ api_function_definitions = {
     'update_structures_shallow': UpdateStructuresShallow(),
     'update_structures_deep': UpdateStructuresDeep(),
     'request_complex_list': RequestComplexList(),
-    # 'create_writing_stream': CreateWritingStream(),
+    'create_writing_stream': CreateWritingStream(),
     'stream_update': StreamUpdate(),
     'update_workspace': UpdateWorkspace(),
     'zoom_on_structures': ZoomOnStructures(),

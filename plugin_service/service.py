@@ -5,6 +5,7 @@ import os
 import redis
 import threading
 import uuid
+from collections.abc import Iterable
 
 import nanome
 from nanome.util import async_callback, Logs
@@ -113,17 +114,24 @@ class PluginService(nanome.AsyncPluginInstance):
         if not callback_fn:
             self.message_callback(fn_definition, response_channel)
 
-    def message_callback(self, fn_definition, response_channel, response=None):
+    def message_callback(self, fn_definition, response_channel, *return_values):
         """When response data received from NTS, serialize and publish to response channel."""
         output_schema = fn_definition.output
-        serialized_response = {}
-        if output_schema:
-            if isinstance(output_schema, Schema):
-                serialized_response = output_schema.dump(response)
-            elif isinstance(output_schema, fields.Field):
+        if output_schema and not isinstance(output_schema, Iterable):
+            output_schema = [output_schema]
+        
+        response = []
+        for schema_or_field, return_value in zip(output_schema, return_values):
+            if isinstance(schema_or_field, Schema):
+                serialized_response = schema_or_field.dump(return_value)
+                response.append(serialized_response)
+            elif isinstance(schema_or_field, fields.Field):
                 # Field that does not need to be deserialized
-                serialized_response = output_schema.serialize(response)
-        json_response = json.dumps(serialized_response)
+                serialized_response = schema_or_field.serialize(response)
+                response.append(serialized_response)
+        if len(response) == 1:
+            response = response[0]
+        json_response = json.dumps(response)
         Logs.message(f'Publishing Response to {response_channel}')
         self.rds.publish(response_channel, json_response)
 
@@ -138,15 +146,14 @@ class PluginService(nanome.AsyncPluginInstance):
             arg = schema.load(arg_data)
         return arg
 
-    async def create_writing_stream(self, indices_list, stream_type, callback=None):
-        """After creating stream, save it for future lookups."""
-        response = await super().create_writing_stream(indices_list, stream_type, callback=callback)
-        stream, error = response
-        if stream:
-            self.streams.append(stream)
-
-        stream_data = {"stream_id": stream._Stream__id, 'error': error}
-        return stream_data
+    # async def create_writing_stream(self, indices_list, stream_type, callback=None):
+    #     """After creating stream, save it for future lookups."""
+    #     response = await super().create_writing_stream(indices_list, stream_type, callback=callback)
+    #     stream, error = response
+    #     if stream:
+    #         self.streams.append(stream)
+    #     stream_data = {"stream_id": stream._Stream__id, 'error': error}
+    #     return stream_data
 
     def stream_update(self, stream_id, stream_data):
         """Function to update stream."""
