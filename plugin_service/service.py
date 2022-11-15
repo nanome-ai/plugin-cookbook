@@ -109,11 +109,8 @@ class PluginService(nanome.AsyncPluginInstance):
             fn_args.append(callback_fn)
         # Call API function
         function_to_call(*fn_args, **fn_kwargs)
-        # For non-callback fucntions, ensure message sent back
-        if not callback_fn:
-            self.message_callback(fn_definition, response_channel)
 
-    def message_callback(self, fn_definition, response_channel, response=None):
+    def message_callback(self, fn_definition, response_channel, response=None, *args):
         """When response data received from NTS, serialize and publish to response channel."""
         output_schema = fn_definition.output
         serialized_response = {}
@@ -123,6 +120,14 @@ class PluginService(nanome.AsyncPluginInstance):
             elif isinstance(output_schema, fields.Field):
                 # Field that does not need to be deserialized
                 serialized_response = output_schema.serialize(response)
+
+        if fn_definition.__class__.__name__ == 'CreateWritingStream':
+            Logs.message("Saving Stream to Plugin Instance")
+            if response:
+                self.streams.append(response)
+            else:
+                Logs.error("Error creating stream")
+
         json_response = json.dumps(serialized_response)
         Logs.message(f'Publishing Response to {response_channel}')
         self.rds.publish(response_channel, json_response)
@@ -137,16 +142,6 @@ class PluginService(nanome.AsyncPluginInstance):
             schema = schema_class()
             arg = schema.load(arg_data)
         return arg
-
-    async def create_writing_stream(self, indices_list, stream_type, callback=None):
-        """After creating stream, save it for future lookups."""
-        response = await super().create_writing_stream(indices_list, stream_type, callback=callback)
-        stream, error = response
-        if stream:
-            self.streams.append(stream)
-
-        stream_data = {"stream_id": stream._Stream__id, 'error': error}
-        return stream_data
 
     def stream_update(self, stream_id, stream_data):
         """Function to update stream."""

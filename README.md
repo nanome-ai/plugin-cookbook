@@ -21,7 +21,7 @@ A new feature we're testing in this repo is communicating with a running PluginI
 git clone https://github.com/nanome-ai/plugin-cookbook.git
 ````
 
-2) Set up pre-commit hook to clear outputs before commmiting.
+2) Set up pre-commit hook to clear outputs before committing.
 ```sh
 cp pre-commit-hook .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
@@ -39,12 +39,9 @@ cp .env.sample .env
 ```
 
 ## Using the cookbook
-For now, the cookbook is expected to run on localhost, and you need access to the Docker logs.
+For now, the cookbook is expected to run on localhost.
 
 - Once the plugin has been started, in the Nanome app you should see "Cookbook" in your Stacks Menu. Select it, and press Activate/Run
-
-- In the notebooks that are Redis compatible (for example, notebooks/Pharmacaphore.ipynb), the first cell will have a variable `redis_channel`, which you set as the uuid from the log. This tells the notebook where your plugin_instance is expecting to receive function requests.
-
 
 ## Redis RPC architecture
 - The application contains 2 docker containers deployed using docker-compose, `cookbook`, and `plugin_service`, which communicate via Redis Publish/Subscribe pattern.
@@ -63,7 +60,6 @@ For now, the cookbook is expected to run on localhost, and you need access to th
 - When the message is received by `plugin_service`, it parses it and executes the provided function with args and kwargs. It then publishes the results back the `cookbook`, on the response channel.
 
 ![alt text](assets/pubsub.png)
-
 
 ## Contributors
 @mjrosengrant
