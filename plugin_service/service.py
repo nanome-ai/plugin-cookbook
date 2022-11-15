@@ -1,3 +1,4 @@
+import asyncio
 import functools
 import inspect
 import json
@@ -138,14 +139,17 @@ class PluginService(nanome.AsyncPluginInstance):
             arg = schema.load(arg_data)
         return arg
 
-    async def create_writing_stream(self, indices_list, stream_type, callback=None):
+    def create_writing_stream(self, indices_list, stream_type, callback=None):
         """After creating stream, save it for future lookups."""
-        response = await super().create_writing_stream(indices_list, stream_type, callback=callback)
+        def publish_to_redis(self, stream, error):
+            pass
+
+        fn_callback = functools.partial(publish_to_redis, self)
+        response = super().create_writing_stream(indices_list, stream_type, callback=fn_callback)
         stream, error = response
         if stream:
             self.streams.append(stream)
-
-        stream_data = {"stream_id": stream._Stream__id, 'error': error}
+        stream_data = schemas.StreamSchema.load(stream)
         return stream_data
 
     def stream_update(self, stream_id, stream_data):
