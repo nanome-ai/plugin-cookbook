@@ -9,6 +9,7 @@ from nanome.util import Logs
 from marshmallow import fields
 from api_definitions import api_function_definitions
 
+
 class StreamRedisInterface:
     """Gets wrapped around a stream object on creation, and is used to send data to the stream through redis.
 
@@ -17,8 +18,8 @@ class StreamRedisInterface:
     """
 
     def __init__(self, stream_data, plugin_interface):
-        self.stream_id = stream_data['stream_id']
-        self.error = stream_data['error']
+        self.stream_id = stream_data['id']
+        # self.error = stream_data['error']
         self._plugin_interface = plugin_interface
 
 
@@ -143,6 +144,14 @@ class PluginInstanceRedisInterface:
         """
         function_name = 'upload_shapes'
         args = [shape_list]
+        response = self._rpc_request(function_name, args=args)
+        return response
+    
+    def stream_update(self, stream_id, stream_data):
+        """Update stream with data.
+        """
+        function_name = 'stream_update'
+        args = [stream_id, stream_data]
         response = self._rpc_request(function_name, args=args)
         return response
 

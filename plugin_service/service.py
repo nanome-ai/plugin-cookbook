@@ -109,11 +109,11 @@ class PluginService(nanome.AsyncPluginInstance):
             fn_args.append(callback_fn)
         # Call API function
         function_to_call(*fn_args, **fn_kwargs)
-        # For non-callback fucntions, ensure message sent back
+        # For non-callback functions, ensure message sent back
         if not callback_fn:
             self.message_callback(fn_definition, response_channel)
 
-    def message_callback(self, fn_definition, response_channel, response=None):
+    def message_callback(self, fn_definition, response_channel, response=None, *args):
         """When response data received from NTS, serialize and publish to response channel."""
         output_schema = fn_definition.output
         serialized_response = {}
