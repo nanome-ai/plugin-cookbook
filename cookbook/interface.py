@@ -145,7 +145,7 @@ class PluginInstanceRedisInterface:
         args = [shape_list]
         response = self._rpc_request(function_name, args=args)
         return response
-    
+
     def stream_update(self, stream_id, stream_data):
         """Update stream with data.
         """

@@ -102,7 +102,7 @@ class RequestControllerTransforms:
 
 
 api_function_definitions = {
-    'request_workspace':RequestWorkspace(),
+    'request_workspace': RequestWorkspace(),
     'request_complexes': RequestComplexes(),
     'update_structures_shallow': UpdateStructuresShallow(),
     'update_structures_deep': UpdateStructuresDeep(),
