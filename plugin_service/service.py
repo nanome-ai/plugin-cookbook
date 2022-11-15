@@ -8,6 +8,7 @@ import threading
 import uuid
 
 import nanome
+from nanome.api.streams import Stream
 from nanome.util import async_callback, Logs
 from nanome.util.enums import NotificationTypes, PluginListButtonType
 from nanome._internal._util._serializers import _TypeSerializer
@@ -110,9 +111,6 @@ class PluginService(nanome.AsyncPluginInstance):
             fn_args.append(callback_fn)
         # Call API function
         function_to_call(*fn_args, **fn_kwargs)
-        # For non-callback functions, ensure message sent back
-        if not callback_fn:
-            self.message_callback(fn_definition, response_channel)
 
     def message_callback(self, fn_definition, response_channel, response=None, *args):
         """When response data received from NTS, serialize and publish to response channel."""
@@ -124,6 +122,14 @@ class PluginService(nanome.AsyncPluginInstance):
             elif isinstance(output_schema, fields.Field):
                 # Field that does not need to be deserialized
                 serialized_response = output_schema.serialize(response)
+
+        if fn_definition.__class__.__name__ == 'CreateWritingStream':
+            Logs.message("Saving Stream to Plugin Instance")
+            if response:
+                self.streams.append(response)
+            else:
+                Logs.error("Error creating stream")
+
         json_response = json.dumps(serialized_response)
         Logs.message(f'Publishing Response to {response_channel}')
         self.rds.publish(response_channel, json_response)
@@ -139,20 +145,21 @@ class PluginService(nanome.AsyncPluginInstance):
             arg = schema.load(arg_data)
         return arg
 
-    def create_writing_stream(self, indices_list, stream_type, callback=None):
-        """After creating stream, save it for future lookups."""
-        def save_stream(self, stream, error):
-            if stream:
-                self.streams.append(stream)
-                stream_data = schemas.StreamSchema().dump(stream)
-                return stream_data
-            else:
-                Logs.error(error)
-        fn_callback = functools.partial(save_stream, self)
-        super().create_writing_stream(indices_list, stream_type, callback=fn_callback)
+    # def create_writing_stream(self, indices_list, stream_type, callback=None):
+    #     """After creating stream, save it for future lookups."""
+    #     def save_stream(self, stream, error):
+    #         if stream:
+    #             self.streams.append(stream)
+    #             stream_data = schemas.StreamSchema().dump(stream)
+    #             return stream_data
+    #         else:
+    #             Logs.error(error)
+    #     fn_callback = functools.partial(save_stream, self)
+    #     super().create_writing_stream(indices_list, stream_type, callback=fn_callback)
 
     def stream_update(self, stream_id, stream_data):
         """Function to update stream."""
+        # stream = Stream()
         stream = next(strm for strm in self.streams if strm._Stream__id == stream_id)
         output = stream.update(stream_data)
         return output

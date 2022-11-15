@@ -18,7 +18,7 @@ class StreamRedisInterface:
     """
 
     def __init__(self, stream_data, plugin_interface):
-        self.stream_id = stream_data['id']
+        self.id = stream_data['id']
         # self.error = stream_data['error']
         self._plugin_interface = plugin_interface
 
