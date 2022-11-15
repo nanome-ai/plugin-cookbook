@@ -1,4 +1,3 @@
-import asyncio
 import functools
 import inspect
 import json
@@ -8,7 +7,6 @@ import threading
 import uuid
 
 import nanome
-from nanome.api.streams import Stream
 from nanome.util import async_callback, Logs
 from nanome.util.enums import NotificationTypes, PluginListButtonType
 from nanome._internal._util._serializers import _TypeSerializer
