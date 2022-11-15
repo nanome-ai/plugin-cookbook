@@ -37,6 +37,9 @@ services:
       - JUPYTER_ENABLE_LAB=yes
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
+      - NTS_HOST=${NTS_HOST:-}
+      - NTS_PORT=${NTS_PORT:-}
+      - NTS_KEY=${NTS_KEY:-}
     ports:
       - 8888:8888
     volumes:
@@ -45,11 +48,3 @@ services:
     stdin_open: true
     depends_on:
       - redis
-  # Uncomment to use Neo4j integration notebook. 
-  # neo4j:
-  #   image: neo4j
-  #   ports:
-  #     - "7474:7474"
-  #     - "7687:7687"
-  #   volumes:
-  #     - $HOME/neo4j/data:/data
