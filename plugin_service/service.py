@@ -141,16 +141,15 @@ class PluginService(nanome.AsyncPluginInstance):
 
     def create_writing_stream(self, indices_list, stream_type, callback=None):
         """After creating stream, save it for future lookups."""
-        def publish_to_redis(self, stream, error):
-            pass
-
-        fn_callback = functools.partial(publish_to_redis, self)
-        response = super().create_writing_stream(indices_list, stream_type, callback=fn_callback)
-        stream, error = response
-        if stream:
-            self.streams.append(stream)
-        stream_data = schemas.StreamSchema.load(stream)
-        return stream_data
+        def save_stream(self, stream, error):
+            if stream:
+                self.streams.append(stream)
+                stream_data = schemas.StreamSchema().dump(stream)
+                return stream_data
+            else:
+                Logs.error(error)
+        fn_callback = functools.partial(save_stream, self)
+        super().create_writing_stream(indices_list, stream_type, callback=fn_callback)
 
     def stream_update(self, stream_id, stream_data):
         """Function to update stream."""
