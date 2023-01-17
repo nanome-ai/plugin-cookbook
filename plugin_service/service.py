@@ -42,8 +42,7 @@ class PluginService(nanome.AsyncPluginInstance):
     async def on_run(self):
         default_url = os.environ.get('DEFAULT_URL')
         if default_url:
-            jupyter_token = os.environ.get('JUPYTER_TOKEN')
-            url = f'{default_url}?token={jupyter_token}'
+            url = default_url
             Logs.message(f'Opening {url}')
             self.open_url(url)
         Logs.message("Polling for requests")
