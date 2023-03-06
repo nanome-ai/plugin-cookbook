@@ -23,6 +23,12 @@ RUN conda install -c conda-forge jupyterlab rdkit pip
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# Copy and install redis interface
+COPY redis_interface .
+RUN pip install ./redis_interface
+
 COPY . .
+
+WORKDIR /app/cookbook
 RUN jupyter notebook --generate-config
 CMD jupyter lab --ip 0.0.0.0 --allow-root

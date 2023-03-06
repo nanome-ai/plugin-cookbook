@@ -24,8 +24,8 @@ services:
   
   cookbook:
     build:
-      context: ./cookbook
-      dockerfile: ./Dockerfile
+      # dockerfile: Dockerfile
+      context: .
     environment:
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
@@ -37,8 +37,8 @@ services:
       - NTS_KEY=${NTS_KEY:-}
     ports:
       - 8888:8888
-    volumes:
-      - ./cookbook:/app
+    # volumes:
+    #   - ./cookbook:/app
     tty: true
     stdin_open: true
     depends_on:

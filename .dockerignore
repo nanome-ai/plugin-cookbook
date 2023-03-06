@@ -1,0 +1,10 @@
+*
+!cookbook
+!redis_interface
+!requirements.txt
+!README.md
+!package.json
+!package-lock.json
+# !schemas.py
+# !interface.py
+# !template.ipynb
