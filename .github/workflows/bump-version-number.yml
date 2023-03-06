@@ -1,0 +1,46 @@
+name: Bump version number
+on:
+  workflow_dispatch:
+    inputs:
+      version_part:
+        type: choice
+        description: Part of version number to bump
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version_number: ${{steps.new_version_number.outputs.version_number}}
+    steps:
+      # Checkout repository, bump version with ./version.sh, and commit
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.NANOME_BOT_PAT }}
+      - name: git setup
+        run: |
+          git config --global user.name 'nanome-bot'
+          git config --global user.email '45469149+nanome-bot@users.noreply.github.com'
+      - name: Run version.sh
+        run: |
+          pip install bump2version
+          chmod +x ./version.sh
+          ./version.sh ${{ github.event.inputs.version_part }}
+      - name: get new version number
+        id: new_version_number
+        run: |
+          new_ver=$(cat setup.cfg | grep current_version | awk -F "=" '{print $2}' | xargs)
+          echo "version_number=$new_ver" >> $GITHUB_OUTPUT
+      - name: Push to GitHub
+        run: |
+          git push --follow-tags
+
+  push-to-registry:
+    needs: bump-version
+    uses: ./.github/workflows/push-to-registry.yml
+    with:
+      tag: ${{needs.bump-version.outputs.version_number}}
+    secrets: inherit
