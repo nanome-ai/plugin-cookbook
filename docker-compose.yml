@@ -2,11 +2,9 @@ version: '3'
 services:
   redis:
     image: redis
-  plugin_service:
-    build:
-      context: ./plugin_service
-      dockerfile: ./Dockerfile
+  redis_plugin:
     tty: true
+    image: public.ecr.aws/h7r1e4h2/cookbook-redis-service:latest
     environment:
       - DEFAULT_URL=http://127.0.0.1:8888
       - REDIS_HOST=${REDIS_HOST:-redis}
@@ -23,8 +21,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./plugin_service:/app
-      # - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.7/site-packages/nanome
+      - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.7/site-packages/nanome
     command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
   
   cookbook:
