@@ -20,8 +20,6 @@ services:
 
     depends_on:
       - redis
-    volumes:
-      - /home/mike/workspace/nanome-lib/nanome:/opt/conda/lib/python3.7/site-packages/nanome
     command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
   
   cookbook:
