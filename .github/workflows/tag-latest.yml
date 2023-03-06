@@ -1,7 +1,7 @@
 name: Tag latest
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 env:
   TAG_NAME: latest
