@@ -1,6 +1,6 @@
 *
 !cookbook
-!redis_interface
+!redis-interface
 !requirements.txt
 !README.md
 !package.json

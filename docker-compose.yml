@@ -24,7 +24,6 @@ services:
   
   cookbook:
     build:
-      # dockerfile: Dockerfile
       context: .
     environment:
       - REDIS_HOST=${REDIS_HOST:-redis}
