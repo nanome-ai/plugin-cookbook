@@ -36,8 +36,9 @@ services:
       - NTS_KEY=${NTS_KEY:-}
     ports:
       - 8888:8888
-    # volumes:
-    #   - ./cookbook:/app
+    volumes:
+      - ./cookbook:/app/cookbook
+      - ./redis-interface:/app/redis-interface
     tty: true
     stdin_open: true
     depends_on:

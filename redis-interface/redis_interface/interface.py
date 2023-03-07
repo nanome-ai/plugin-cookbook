@@ -7,7 +7,7 @@ from nanome import PluginInstance
 from nanome.api import schemas
 from nanome.util import Logs
 from marshmallow import fields
-from .api_definitions import api_function_definitions
+from nanome.api.schemas.api_definitions import api_function_definitions
 
 __all__ = ['PluginInstanceRedisInterface', 'StreamRedisInterface']
 
