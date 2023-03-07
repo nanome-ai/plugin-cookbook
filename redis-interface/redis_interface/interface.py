@@ -109,15 +109,18 @@ class PluginInstanceRedisInterface:
             'kwargs': serialized_kwargs,
             'response_channel': response_channel
         })
+        expects_response = bool(fn_definition.output)
+        if expects_response:
+            # Subscribe to response channel before publishing message
+            pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
+            pubsub.subscribe(response_channel)
+
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
-        # Subscribe to response channel before publishing message
-        pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
-        pubsub.subscribe(response_channel)
         self.redis.publish(self.channel, message)
         timeout = 10
 
         start_time = time.time()
-        while True:
+        while expects_response:
             message = pubsub.get_message()
             if time.time() >= start_time + timeout:
                 raise TimeoutError(f"Timeout waiting for response from RPC {function_name}")
