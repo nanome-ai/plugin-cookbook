@@ -101,6 +101,23 @@ class RequestControllerTransforms:
     ]
 
 
+class RequestControllerTransforms:
+    params = []
+    output = [
+        schemas.Vector3Field(), schemas.QuaternionField(),
+        schemas.Vector3Field(), schemas.QuaternionField(),
+        schemas.Vector3Field(), schemas.QuaternionField()
+    ]
+
+
+class ApplyColorScheme:
+    params = [
+        schemas.EnumField(enum=enums.ColorScheme),
+        schemas.EnumField(enum=enums.ColorSchemeTarget),
+        fields.Boolean()
+    ]
+    output = None
+
 api_function_definitions = {
     'request_workspace': RequestWorkspace(),
     'request_complexes': RequestComplexes(),
@@ -117,5 +134,6 @@ api_function_definitions = {
     'add_bonds': AddBonds(),
     'open_url': OpenUrl(),
     'request_presenter_info': RequestPresenterInfo(),
-    'request_controller_transforms': RequestControllerTransforms()
+    'request_controller_transforms': RequestControllerTransforms(),
+    'apply_color_scheme': ApplyColorScheme(),
 }
