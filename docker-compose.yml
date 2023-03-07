@@ -4,7 +4,7 @@ services:
     image: redis
   redis_plugin:
     tty: true
-    image: public.ecr.aws/h7r1e4h2/cookbook-redis-service:0.2.2
+    image: public.ecr.aws/h7r1e4h2/cookbook-redis-service:0.2.3
     environment:
       - DEFAULT_URL=http://127.0.0.1:8888
       - REDIS_HOST=${REDIS_HOST:-redis}
@@ -37,7 +37,8 @@ services:
     ports:
       - 8888:8888
     # volumes:
-    #   - ./cookbook:/app
+    #   - ./cookbook:/app/cookbook
+    #   - ./redis-interface:/app/redis-interface
     tty: true
     stdin_open: true
     depends_on:
