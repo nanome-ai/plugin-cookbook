@@ -16,7 +16,7 @@ services:
       - ARGS=${ARGS:-}
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
-      - PLUGIN_NAME=${PLUGIN_NAME:-}
+      - PLUGIN_NAME=[wip]-Cookbook
 
     depends_on:
       - redis

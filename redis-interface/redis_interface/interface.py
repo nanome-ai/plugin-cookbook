@@ -1,4 +1,5 @@
 import json
+import os
 import redis
 import uuid
 import time
@@ -10,6 +11,8 @@ from marshmallow import fields
 from nanome.api.schemas.api_definitions import api_function_definitions
 
 __all__ = ['PluginInstanceRedisInterface', 'StreamRedisInterface']
+
+NTS_RESPONSE_TIMEOUT = os.environ.get('NTS_RESPONSE_TIMEOUT', 30)
 
 
 class StreamRedisInterface:
@@ -117,12 +120,10 @@ class PluginInstanceRedisInterface:
 
         Logs.message(f"Sending {function_name} Request to Redis Channel {self.channel}")
         self.redis.publish(self.channel, message)
-        timeout = 10
-
         start_time = time.time()
         while expects_response:
             message = pubsub.get_message()
-            if time.time() >= start_time + timeout:
+            if time.time() >= start_time + NTS_RESPONSE_TIMEOUT:
                 raise TimeoutError(f"Timeout waiting for response from RPC {function_name}")
             if not message:
                 continue

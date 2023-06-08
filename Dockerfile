@@ -6,6 +6,10 @@ ENV NODE_VERSION=16.13.1
 RUN apt-get --allow-releaseinfo-change update && apt-get -y upgrade
 RUN apt-get install -y curl
 
+# Set up jupyter conda environment
+RUN conda update conda
+RUN conda install -c conda-forge jupyterlab rdkit pip
+
 # Install Node and NPM.
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
@@ -16,9 +20,6 @@ ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 COPY package.json .
 RUN npm install
 
-# Set up jupyter conda environment
-RUN conda update conda
-RUN conda install -c conda-forge jupyterlab rdkit pip
 
 COPY redis-interface ./redis-interface
 COPY requirements.txt .
@@ -29,5 +30,5 @@ COPY . .
 
 # Install redis interface
 WORKDIR /app/cookbook
-RUN jupyter notebook --generate-config
+RUN jupyter server --generate-config
 CMD jupyter lab --ip 0.0.0.0 --allow-root

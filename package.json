@@ -1,6 +1,6 @@
 {
 	"dependencies": {
-		"@jupyterlab/builder": "latest",
+		"@jupyterlab/builder": "3.5.0",
 		"@jupyterlab/toc-extension": "latest",
 		"node-fetch": ">=2.6.7",
 		"nanoid": ">=3.1.31"
