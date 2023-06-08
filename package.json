@@ -1,8 +1,8 @@
 {
 	"dependencies": {
-		"@jupyterlab/builder": "3.5.0",
+		"@jupyterlab/builder": "^3.6.4",
 		"@jupyterlab/toc-extension": "latest",
-		"node-fetch": ">=2.6.7",
-		"nanoid": ">=3.1.31"
+		"nanoid": ">=3.1.31",
+		"node-fetch": ">=2.6.7"
 	}
 }
