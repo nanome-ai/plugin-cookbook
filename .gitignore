@@ -20,3 +20,4 @@ cookbook/.nanome_lib
 __pycache__
 .vscode
 push_images.sh
+docker-compose.local.yml
