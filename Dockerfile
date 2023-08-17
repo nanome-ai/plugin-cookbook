@@ -26,7 +26,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-# Install redis interface
 WORKDIR /app/cookbook
 RUN jupyter server --generate-config
 CMD jupyter lab --ip 0.0.0.0 --allow-root
