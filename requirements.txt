@@ -1,5 +1,5 @@
 # nanome[schemas]==0.40.5
-git+https://github.com/nanome-ai/nanome-lib@beta-folder
+nanome==0.41.1
 jupyterlab
 dill==0.3.4
 redis==4.1.3
