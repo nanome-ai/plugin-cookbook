@@ -20,15 +20,11 @@ ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 COPY package.json .
 RUN npm install
 
-
-COPY redis-interface ./redis-interface
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-
 COPY . .
 
-# Install redis interface
 WORKDIR /app/cookbook
 RUN jupyter server --generate-config
 CMD jupyter lab --ip 0.0.0.0 --allow-root
