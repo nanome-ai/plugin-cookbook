@@ -34,7 +34,6 @@ services:
       - 8888:8888
     volumes:
       - ./cookbook:/app/cookbook
-      - ../nanome-lib/nanome:/opt/conda/lib/python3.9/site-packages/nanome
     tty: true
     stdin_open: true
     depends_on:
