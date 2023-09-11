@@ -4,7 +4,7 @@ services:
     image: redis
   redis_plugin:
     tty: true
-    image: public.ecr.aws/h7r1e4h2/cookbook-redis-service:0.2.5
+    image: public.ecr.aws/h7r1e4h2/cookbook-redis-service:1.0.0
     environment:
       - DEFAULT_URL=http://127.0.0.1:8888
       - REDIS_HOST=${REDIS_HOST:-redis}
@@ -17,10 +17,9 @@ services:
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
       - PLUGIN_NAME=[wip]-Cookbook
-
+      - PLUGIN_VERBOSE=${PLUGIN_VERBOSE:-true}
     depends_on:
       - redis
-    command: python run.py -a ${NTS_HOST} -p ${NTS_PORT} -r -v
   
   cookbook:
     build:
@@ -31,13 +30,10 @@ services:
       - JUPYTER_ENABLE_LAB=yes
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
-      - NTS_HOST=${NTS_HOST:-}
-      - NTS_PORT=${NTS_PORT:-}
-      - NTS_KEY=${NTS_KEY:-}
     ports:
       - 8888:8888
-    # volumes:
-    #   - ./cookbook:/app/cookbook
+    volumes:
+      - ./cookbook:/app/cookbook
     tty: true
     stdin_open: true
     depends_on:
