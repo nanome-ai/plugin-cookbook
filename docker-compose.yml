@@ -14,7 +14,7 @@ services:
       - NTS_PORT=${NTS_PORT:-}
       - NTS_KEY=${NTS_KEY:-}
       - ARGS=${ARGS:-}
-      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-abc}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
       - PLUGIN_NAME=[wip]-Cookbook
       - PLUGIN_VERBOSE=${PLUGIN_VERBOSE:-true}
@@ -28,7 +28,7 @@ services:
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - JUPYTER_ENABLE_LAB=yes
-      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-change_me}
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-abc}
       - REDIS_CHANNEL=${REDIS_CHANNEL:-}
     ports:
       - 8888:8888
