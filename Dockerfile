@@ -4,7 +4,7 @@ WORKDIR /app
 ENV NODE_VERSION=16.13.1
 
 RUN apt-get --allow-releaseinfo-change update && apt-get -y upgrade
-RUN apt-get install -y curl
+RUN apt-get install -y curl build-essential
 
 # Set up jupyter conda environment
 RUN conda update conda
