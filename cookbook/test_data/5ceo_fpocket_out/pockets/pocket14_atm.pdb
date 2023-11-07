@@ -1,0 +1,37 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket    14:
+HEADER 0  - Pocket Score                      : -0.1204
+HEADER 1  - Drug Score                        : 0.0001
+HEADER 2  - Number of alpha spheres           :    16
+HEADER 3  - Mean alpha-sphere radius          : 3.9316
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.6939
+HEADER 5  - Mean B-factor of pocket residues  : 0.6906
+HEADER 6  - Hydrophobicity Score              : 16.0000
+HEADER 7  - Polarity Score                    :     4
+HEADER 8  - Amino Acid based volume Score     : 3.6000
+HEADER 9  - Pocket volume (Monte Carlo)       : 233.3556
+HEADER 10  -Pocket volume (convex hull)       : 3.5314
+HEADER 11 - Charge Score                      :     2
+HEADER 12 - Local hydrophobic density Score   : 0.0000
+HEADER 13 - Number of apolar alpha sphere     :     0
+HEADER 14 - Proportion of apolar alpha sphere : 0.0000
+ATOM   1567    N HIS A 328      -6.633  -2.948   9.142  0.00  0.00           N 0
+ATOM   1575  CE1 HIS A 328      -2.943  -4.725   6.393  0.00  0.00           C 0
+ATOM   1573  ND1 HIS A 328      -3.490  -4.913   7.587  0.56  7.66           N 0
+ATOM   1556    O SER A 326     -10.625  -4.945   7.074  0.00  0.00           O 0
+ATOM   1576  NE2 HIS A 328      -2.714  -3.430   6.159  0.00  0.00           N 0
+ATOM   1572   CG HIS A 328      -3.639  -3.648   8.138  0.00  0.00           C 0
+ATOM   2116  NE2 HIS A 393      -7.974   2.308   5.462  0.00  0.00           N 0
+ATOM   1570    O HIS A 328      -5.897  -0.573   8.341  0.64  4.29           O 0
+ATOM   1565  CD1 LEU A 327      -9.714  -0.866   8.192  0.00  0.00           C 0
+ATOM   2115  CE1 HIS A 393      -7.789   2.073   4.163  0.00  0.00           C 0
+ATOM   1560   CA LEU A 327      -8.829  -3.927   9.014  0.00  0.00           C 0
+ATOM   1555    C SER A 326     -10.144  -5.723   7.912  0.00  0.00           C 0
+ATOM   1548    O ASN A 325      -8.671  -9.307   8.461  0.52  8.57           O 0
+ATOM   1574  CD2 HIS A 328      -3.128  -2.738   7.273  0.00  0.00           C 0
+ATOM   1559    N LEU A 327      -9.284  -5.316   8.879  0.00  0.00           N 0
+TER
+END

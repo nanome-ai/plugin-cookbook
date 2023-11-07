@@ -1,0 +1,41 @@
+HEADER
+HEADER This is a pdb format file writen by the programm fpocket.                 
+HEADER It represents the atoms contacted by the voronoi vertices of the pocket.  
+HEADER                                                                           
+HEADER Information about the pocket     7:
+HEADER 0  - Pocket Score                      : 0.0126
+HEADER 1  - Drug Score                        : 0.0127
+HEADER 2  - Number of alpha spheres           :    24
+HEADER 3  - Mean alpha-sphere radius          : 3.7975
+HEADER 4  - Mean alpha-sphere Solvent Acc.    : 0.5117
+HEADER 5  - Mean B-factor of pocket residues  : 0.4138
+HEADER 6  - Hydrophobicity Score              : 64.0000
+HEADER 7  - Polarity Score                    :     1
+HEADER 8  - Amino Acid based volume Score     : 4.7143
+HEADER 9  - Pocket volume (Monte Carlo)       : 196.7289
+HEADER 10  -Pocket volume (convex hull)       : 5.3662
+HEADER 11 - Charge Score                      :     1
+HEADER 12 - Local hydrophobic density Score   : 23.0000
+HEADER 13 - Number of apolar alpha sphere     :    24
+HEADER 14 - Proportion of apolar alpha sphere : 1.0000
+ATOM    188  CD2 PHE A 140       1.480  15.521  42.070  0.00  0.00           C 0
+ATOM    105  CD1 LEU A 128       4.289  14.426  46.705  0.00  0.00           C 0
+ATOM    190  CE2 PHE A 140       0.141  15.655  42.454  0.00  0.00           C 0
+ATOM    191   CZ PHE A 140      -0.702  14.569  42.399  0.00  0.00           C 0
+ATOM    187  CD1 PHE A 140       1.100  13.219  41.574  0.00  0.00           C 0
+ATOM    189  CE1 PHE A 140      -0.237  13.358  41.944  0.00  0.00           C 0
+ATOM    569   CB CYS A 187       3.040   7.060  45.007  0.00  0.00           C 0
+ATOM    275  CG1 VAL A 151       4.955  10.218  43.667  0.00  0.00           C 0
+ATOM     54  CE1 PHE A 122       3.670  11.543  49.299  0.00  0.00           C 0
+ATOM    570   SG CYS A 187       4.349   7.582  46.142  0.00  0.00           S 0
+ATOM    106  CD2 LEU A 128       5.351  14.144  44.471  0.00  0.00           C 0
+ATOM    292   CD LYS A 153      -1.304   8.847  45.284  0.00  0.00           C 0
+ATOM    550    O CYS A 185       1.760   7.113  48.640  0.76  1.07           O 0
+ATOM    290   CB LYS A 153      -1.128   9.017  42.743  0.00  0.00           C 0
+ATOM     56   CZ PHE A 122       3.223  12.752  49.789  0.00  0.00           C 0
+ATOM    552   SG CYS A 185       0.440  10.245  51.575  0.00  0.00           S 0
+ATOM    293   CE LYS A 153      -2.172   8.502  46.462  0.00  0.00           C 0
+ATOM    551   CB CYS A 185       1.089   8.816  50.672  0.00  0.00           C 0
+ATOM    548   CA CYS A 185       0.017   7.976  49.981  0.00  0.00           C 0
+TER
+END
