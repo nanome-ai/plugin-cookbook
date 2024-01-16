@@ -9,7 +9,9 @@ jpserver-8*
 jupyter_cookie_secret
 kernel*.json
 *.ipynb_checkpoints
-docker/redeploy.sh
+docker/*
+!docker/build.sh
+!docker/deploy.sh
 cookbook/.ipynb_checkpoints
 cookbook/.cache
 cookbook/.jupyter
