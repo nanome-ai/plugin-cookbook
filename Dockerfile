@@ -31,14 +31,17 @@ RUN apt-get update && apt-get install -y \
 
 # Update Conda and install Python, PyTorch with GPU support, and other scientific packages
 RUN mamba update --all --yes && \
-    mamba install -y python=3.10 pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch && \
-    pip install fair-esm nanome omegaconf ml_collections
+    mamba install -y python=3.10 cudatoolkit=11.3
+    #pytorch torchvision torchaudio  -c pytorch
 
 # Install JupyterLab, RDKit, and other dependencies with Conda to ensure they are correctly installed
-RUN mamba install -c conda-forge jupyterlab rdkit
+RUN mamba install -c conda-forge jupyterlab rdkit biopython
 
-# Install ESM, Nanome, OmegaConf
-RUN pip install fair-esm nanome omegaconf dm-tree bio
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
+
+# Install additional dependencies from OpenFold's environment.yml
+RUN pip install fair-esm nanome omegaconf ml_collections dm-tree modelcif einops
+
 
 # Clone OpenFold repository and install it
 RUN git clone https://github.com/aqlaboratory/openfold.git /app/openfold && \
@@ -52,7 +55,21 @@ RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
 RUN useradd -m -s /bin/bash jupyteruser && \
     chown -R jupyteruser:jupyteruser /app
 
+# Switch to root to install system-wide dependencies and perform downloads
+USER root
+
+# Create the directory for model checkpoints
+RUN mkdir -p /home/jupyteruser/.cache/torch/hub/checkpoints/ && \
+    chown -R jupyteruser:jupyteruser /home/jupyteruser/.cache
+
 USER jupyteruser
+
+# Download the folding models directly into the cache directory
+RUN wget https://dl.fbaipublicfiles.com/fair-esm/models/esmfold_3B_v1.pt -O /home/jupyteruser/.cache/torch/hub/checkpoints/esmfold_3B_v1.pt && \
+    wget https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t36_3B_UR50D.pt -O /home/jupyteruser/.cache/torch/hub/checkpoints/esm2_t36_3B_UR50D.pt
+
+
+# Install JupyterLab for the non-root user
 RUN pip install --user jupyterlab
 
 # Copy requirements.txt and install Python dependencies as the non-root user
