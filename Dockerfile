@@ -1,48 +1,63 @@
-# Use miniconda image
-FROM continuumio/miniconda3:4.10.3
+# Use mambaforge as the base image
+FROM condaforge/mambaforge:latest
 
-# Set environment variables
-ENV NODE_VERSION=16.13.1 \
-    NVM_DIR=/opt/nvm
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+ENV NVIDIA_REQUIRE_CUDA "cuda>=8.0"
+ENV NODE_VERSION=16.13.1
 
-RUN conda update conda
+WORKDIR /app
+
+# Set DEBIAN_FRONTEND to noninteractive to avoid prompts during build
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    libtiff5 \
+    gnupg2 \
+    wget \
+    dpkg \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-keyring_1.1-1_all.deb \
+    && dpkg -i cuda-keyring_1.1-1_all.deb \
+    && apt-get update \
+    && apt-get install -y cuda-toolkit-11-8
+
+# Install Python, PyTorch with GPU support, ESM, Nanome, and JupyterLab
+RUN mamba update --all --yes && \
+    mamba install -y python=3.10 pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch && \
+    pip install fair-esm nanome && \
+    pip install omegaconf && \
+    pip install openfold && \
+    mamba install -y -c conda-forge jupyterlab numpy swig sphinx sphinx_rtd_theme mdanalysis simpletraj ncurses openbabel rdkit pip pdbfixer openmm openff-toolkit openmmforcefields
+
+# Copy the Python script to the container
+#COPY ./download_esm_model.py /app/download_esm_model.py
+
+# Run the script to download the models
+#RUN python /app/download_esm_model.py
+
+# Continue with the rest of your Dockerfile setup
+
+# Directly install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get install -y nodejs
 
 # Create a non-root user
 RUN useradd -m -s /bin/bash jupyteruser && \
-    mkdir -p /app /opt/nvm && \
-    chown -R jupyteruser:jupyteruser /app /opt/nvm
-# Switch to non-root user
-USER jupyteruser
-
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies
-USER root
-RUN apt-get update && apt-get install -y curl build-essential && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install JupyterLab, RDKit, Pip
-# Copy pip requirements and install 
-RUN conda install -c conda-forge jupyterlab
-COPY --chown=jupyteruser:jupyteruser requirements.txt .
-RUN pip install -r requirements.txt
+    chown -R jupyteruser:jupyteruser /app
 
 USER jupyteruser
 
-# Install Node.js using NVM
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash && \
-    . "$NVM_DIR/nvm.sh" && \
-    nvm install ${NODE_VERSION} && \
-    nvm alias default ${NODE_VERSION} && \
-    nvm use default
-
-# Update PATH for Node.js
-ENV PATH="/opt/nvm/versions/node/v${NODE_VERSION}/bin:${PATH}"
+# Copy pip requirements and install additional dependencies
+COPY --chown=jupyteruser:jupyteruser requirements.txt /app/
+RUN pip install --user -r requirements.txt
 
 # Copy and install NPM and Python dependencies
-COPY --chown=jupyteruser:jupyteruser package.json .
+COPY --chown=jupyteruser:jupyteruser package.json /app/
 RUN npm install 
 
 # Copy the rest of the application
@@ -51,10 +66,6 @@ COPY --chown=jupyteruser:jupyteruser . /app/
 # Set the working directory for JupyterLab
 WORKDIR /app/cookbook
 
-# Generate Jupyter config
-RUN jupyter lab server --generate-config
-
-# Expose the port JupyterLab will use
 EXPOSE 8888
 
 # Run JupyterLab
