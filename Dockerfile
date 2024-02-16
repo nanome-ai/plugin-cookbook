@@ -1,17 +1,19 @@
-# Use mambaforge as the base image
+# Use mambaforge as the base image for broad compatibility with Conda packages
 FROM condaforge/mambaforge:latest
 
+# Environment variables for NVIDIA and CUDA
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
-ENV NVIDIA_REQUIRE_CUDA "cuda>=8.0"
+ENV NVIDIA_REQUIRE_CUDA "cuda>=11.0"
 ENV NODE_VERSION=16.13.1
 
+# Set the working directory in the container
 WORKDIR /app
 
 # Set DEBIAN_FRONTEND to noninteractive to avoid prompts during build
 ENV DEBIAN_FRONTEND noninteractive
 
-# Install system dependencies
+# Install system dependencies including CUDA toolkit
 RUN apt-get update && apt-get install -y \
     curl \
     libtiff5 \
@@ -19,44 +21,45 @@ RUN apt-get update && apt-get install -y \
     wget \
     dpkg \
     build-essential \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
+    git \
     && wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-keyring_1.1-1_all.deb \
     && dpkg -i cuda-keyring_1.1-1_all.deb \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
     && apt-get update \
-    && apt-get install -y cuda-toolkit-11-8
+    && apt-get install -y cuda-toolkit-11-3  # Ensure CUDA toolkit version matches PyTorch requirements
 
-# Install Python, PyTorch with GPU support, ESM, Nanome, and JupyterLab
+# Update Conda and install Python, PyTorch with GPU support, and other scientific packages
 RUN mamba update --all --yes && \
     mamba install -y python=3.10 pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch && \
-    pip install fair-esm nanome && \
-    pip install omegaconf && \
-    pip install openfold && \
-    mamba install -y -c conda-forge jupyterlab numpy swig sphinx sphinx_rtd_theme mdanalysis simpletraj ncurses openbabel rdkit pip pdbfixer openmm openff-toolkit openmmforcefields
+    pip install fair-esm nanome omegaconf ml_collections
 
-# Copy the Python script to the container
-#COPY ./download_esm_model.py /app/download_esm_model.py
+# Install JupyterLab, RDKit, and other dependencies with Conda to ensure they are correctly installed
+RUN mamba install -c conda-forge jupyterlab rdkit
 
-# Run the script to download the models
-#RUN python /app/download_esm_model.py
+# Install ESM, Nanome, OmegaConf
+RUN pip install fair-esm nanome omegaconf dm-tree bio
 
-# Continue with the rest of your Dockerfile setup
+# Clone OpenFold repository and install it
+RUN git clone https://github.com/aqlaboratory/openfold.git /app/openfold && \
+    cd /app/openfold && pip install .
 
-# Directly install Node.js
+# Install Node.js for JupyterLab extensions or other Node.js applications
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -y nodejs
 
-# Create a non-root user
+# Create a non-root user for JupyterLab to enhance security
 RUN useradd -m -s /bin/bash jupyteruser && \
     chown -R jupyteruser:jupyteruser /app
 
 USER jupyteruser
+RUN pip install --user jupyterlab
 
-# Copy pip requirements and install additional dependencies
+# Copy requirements.txt and install Python dependencies as the non-root user
 COPY --chown=jupyteruser:jupyteruser requirements.txt /app/
 RUN pip install --user -r requirements.txt
 
-# Copy and install NPM and Python dependencies
+# Copy package.json for any NPM dependencies and install them
 COPY --chown=jupyteruser:jupyteruser package.json /app/
 RUN npm install 
 
@@ -66,7 +69,8 @@ COPY --chown=jupyteruser:jupyteruser . /app/
 # Set the working directory for JupyterLab
 WORKDIR /app/cookbook
 
+# Expose the port JupyterLab will run on
 EXPOSE 8888
 
-# Run JupyterLab
+# Command to run JupyterLab, making it accessible from outside the container
 CMD ["jupyter", "lab", "--ip", "0.0.0.0", "--no-browser"]
